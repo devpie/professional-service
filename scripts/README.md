@@ -299,16 +299,16 @@ The notes printed with the delete plan follow the STACKIT documentation as opene
 
 The project belongs to the identity, so `--key` changes it. Without `--key` the script takes the project from the CLI configuration of the active profile. With `--key` it does not: the key is another subject, often in another organization, and it would get 403 for that project. Such a run needs `--project-id` or `--all-projects` and says so when it gets neither. The region is inherited in both cases, because every subject uses the same regions.
 
-`--all-projects` asks twice. `stackit project list` returns the projects the subject is a member of. A role on an organization creates no membership, so a service account that holds one gets an empty list there; its projects appear under `stackit project list --parent-id <organization>`, which the script calls for every organization of `stackit organization list`. The union of both, each project once, is what the run covers.
+`--all-projects` asks two kinds of source. `stackit project list` returns the projects the subject is a member of. A role on an organization or a folder creates no membership, so a service account that holds one gets an empty list there; its projects appear under `stackit project list --parent-id <container>`. The union of both, each project once, is what the run covers.
 
-One gap remains: the API returns the projects that are children of the container it is asked for ([`GET /v2/projects`](https://github.com/stackitcloud/stackit-api-specifications/blob/main/services/resource-manager/v0/resource-manager.json)), and the CLI 0.72.0 has no command that lists folders. A project inside a folder is therefore covered through the membership list, not through its organization.
+The second source is asked for every container, because the API returns the projects that are **children** of the container it is asked for ([`GET /v2/projects`](https://github.com/stackitcloud/stackit-api-specifications/blob/main/services/resource-manager/v0/resource-manager.json)): every organization of `stackit organization list`, and every folder below it. The CLI 0.72.0 has no folder command, so the folders come from [`GET /v2/folders`](https://github.com/stackitcloud/stackit-api-specifications/blob/main/services/resource-manager/v0/resource-manager.json) through `stackit curl`, which signs the request with the same subject as every other call. The walk goes depth first and stops at ten levels. The endpoint is taken from `resource_manager_custom_endpoint` of the active profile and falls back to `https://resource-manager.api.stackit.cloud`. A container the subject may not list answers 403, which ends that branch and not the run.
 
 ### Flags
 
 - `--key NAME|PATH|EMAIL` — service account key from `$STACKIT_KEY_DIR` (default `~/.stackit/keys`), activated in its own CLI profile; `--key ?` opens a menu. Without it the logged-in session is used.
 - `--profile NAME` — CLI profile for the key (default: `resource-graph`).
 - `--project-id ID` — project to inspect, may be repeated. Default: the project from the CLI configuration, which is read only when no `--key` is given.
-- `--all-projects` — every project the identity reaches: the projects it is a member of plus the projects under every organization it can read.
+- `--all-projects` — every project the identity reaches: the projects it is a member of plus the projects under every organization and folder it can read.
 - `--region R` — default: the region from the CLI configuration.
 - `--services a,b,c` — query only these services; `--list-services` prints all of them.
 - `--delete KIND/NAME` — delete an object, may be repeated; `KIND/ID` works too. Needs exactly one project and a terminal. Deleting a `service-account` needs `python3` to read the script's own identity from the access token, or a `--key` file with an issuer email.
