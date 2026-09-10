@@ -50,6 +50,7 @@ DELETES=()
 CLI_PROFILE=""        # profile holding the activated key; empty for the logged-in session
 SELF_EMAIL=""         # identity the script runs as, used to refuse deleting itself
 DEFAULT_PROJECT=""    # project from the CLI configuration
+RESOURCE_MANAGER=""   # resource manager endpoint from the CLI configuration
 WORK=""               # scratch directory with one subdirectory per project
 KEY_PATHS=()          # service account keys found in KEY_DIR
 KEY_EMAILS=()         # their issuer emails, empty when the key has none
@@ -58,6 +59,9 @@ DELETE_EXIT_CODE=0    # 1 when a delete step failed or was blocked
 
 readonly RULE='-------------------------------------------------------------------'
 readonly UNKNOWN_EMAIL='unknown'
+readonly RESOURCE_MANAGER_FALLBACK='https://resource-manager.api.stackit.cloud'
+readonly CONTAINER_PAGE_SIZE=100   # maximum the resource manager accepts
+readonly MAX_FOLDER_DEPTH=10       # guard, deeper trees are not walked
 
 # --- Service catalog ----------------------------------------------------------
 # kind|CLI list command. A kind is the resource type as written in KIND/NAME
@@ -126,7 +130,7 @@ Options:
                              when no --key is given.
       --all-projects         Every project the identity reaches: its own
                              memberships plus the projects under every
-                             organization it can read.
+                             organization and folder it can read.
       --region R             Default: region from the CLI configuration.
       --services a,b,c       Query only these services.
       --list-services        Show queryable services and exit.
@@ -252,6 +256,11 @@ load_cli_defaults() {
   if [[ -z "$KEY_SELECTOR" ]]; then
     DEFAULT_PROJECT="$(printf '%s' "$cli_config" | jq -r '.project_id // empty' 2>/dev/null || true)"
   fi
+  # The endpoint is part of the environment like the region, not of the subject.
+  RESOURCE_MANAGER="$(printf '%s' "$cli_config" \
+                        | jq -r '.resource_manager_custom_endpoint // empty' 2>/dev/null || true)"
+  RESOURCE_MANAGER="${RESOURCE_MANAGER:-$RESOURCE_MANAGER_FALLBACK}"
+  RESOURCE_MANAGER="${RESOURCE_MANAGER%/}"
 }
 
 create_workspace() {
@@ -381,23 +390,65 @@ organization_ids() {
              | .organizationId // empty'
 }
 
+# Prints the folder IDs directly under <container-id>, page by page. The CLI
+# 0.72.0 has no folder command, so the resource manager is asked directly;
+# "stackit curl" signs the request with the same subject as every other call. A
+# container the subject may not list answers 403, whose body carries no items,
+# which ends this branch instead of the run.
+folder_children() { # <container-id>
+  local parent="$1" offset=0 page count
+  while :; do
+    page="$(stackit_cli curl \
+              "$RESOURCE_MANAGER/v2/folders?containerParentId=$parent&limit=$CONTAINER_PAGE_SIZE&offset=$offset" \
+              2>/dev/null || true)"
+    count="$(printf '%s' "$page" | jq -r '(.items // []) | length' 2>/dev/null || true)"
+    [[ "$count" =~ ^[0-9]+$ ]] || count=0
+    [[ $count -gt 0 ]] || break
+    printf '%s' "$page" | jq -r '.items[]? | .folderId // empty' 2>/dev/null || true
+    offset=$((offset + count))
+    [[ $count -eq $CONTAINER_PAGE_SIZE ]] || break
+  done
+}
+
+# Prints every folder ID below <container-id>, depth first. MAX_FOLDER_DEPTH
+# stops a tree that is deeper than expected; the hierarchy is a tree, so no
+# folder is visited twice.
+folder_ids_below() { # <container-id> <depth>
+  local depth="${2:-0}" id
+  [[ $depth -lt $MAX_FOLDER_DEPTH ]] || return 0
+  while read -r id; do
+    [[ -n "$id" ]] || continue
+    printf '%s\n' "$id"
+    folder_ids_below "$id" $((depth + 1))
+  done < <(folder_children "$1")
+}
+
+# Prints every container that can hold projects of the subject: each readable
+# organization and every folder below it.
+readable_containers() {
+  local org
+  while read -r org; do
+    [[ -n "$org" ]] || continue
+    printf '%s\n' "$org"
+    folder_ids_below "$org" 0
+  done < <(organization_ids)
+}
+
 # Prints "<project-id>\x1f<name>" for every project the subject reaches, each ID
 # once. Two sources are needed. "project list" without a filter returns the
-# projects the subject is a member of; a role on an organization creates no such
-# membership, so a service account with an organization role gets an empty list
-# there and its projects only appear under --parent-id. Projects inside a folder
-# are missing from the second source: the API returns the children of the
-# container that is asked for, and the CLI 0.72.0 has no command that lists
-# folders.
+# projects the subject is a member of; a role on an organization or a folder
+# creates no such membership, so a service account with one gets an empty list
+# there and its projects only appear under --parent-id. The API answers with the
+# children of the container that is asked for, so every folder is asked as well.
 # || true: one source that fails must not swallow the other.
 readable_projects() {
-  local org
+  local container
   {
     project_rows project list || true
-    while read -r org; do
-      [[ -n "$org" ]] || continue
-      project_rows project list --parent-id "$org" || true
-    done < <(organization_ids)
+    while read -r container; do
+      [[ -n "$container" ]] || continue
+      project_rows project list --parent-id "$container" || true
+    done < <(readable_containers)
   } | awk -F $'\037' '$1 != "" && !seen[$1]++'
 }
 
@@ -412,7 +463,7 @@ no_project_message() {
 }
 
 resolve_projects() {
-  local id name
+  local id name noun
   : > "$WORK/project-names"
   if [[ $ALL_PROJECTS -eq 1 ]]; then
     while IFS=$'\037' read -r id name; do
@@ -420,7 +471,8 @@ resolve_projects() {
       printf '%s\037%s\n' "$id" "$name" >> "$WORK/project-names"
     done < <(readable_projects)
     [[ ${#PROJECTS[@]} -gt 0 ]] || die "no readable projects"
-    info "${#PROJECTS[@]} projects: memberships and the projects under every readable organization"
+    if [[ ${#PROJECTS[@]} -eq 1 ]]; then noun="project"; else noun="projects"; fi
+    info "${#PROJECTS[@]} $noun: memberships and the projects under every readable organization and folder"
   elif [[ ${#PROJECTS[@]} -eq 0 ]]; then
     [[ -n "$DEFAULT_PROJECT" ]] || die "$(no_project_message)"
     PROJECTS+=("$DEFAULT_PROJECT")
