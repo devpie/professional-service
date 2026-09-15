@@ -93,7 +93,7 @@ repos:
       - id: terraform-numbered-files
         name: Terraform Files Must Have Number Prefix
         description: Ensures all committed .tf files in examples start with exactly 3 digits (e.g., 010-, 020-, 100-). Module files are exempt.
-        entry: scripts/check-terraform-numbered-files.sh
-        language: script
+        entry: python3 .github/scripts/check_terraform_numbered_files.py
+        language: system
         types: [terraform]
         pass_filenames: true

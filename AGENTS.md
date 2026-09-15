@@ -183,8 +183,6 @@ Fetch only the files relevant to the task. A typical example contains
 
 - **`check-stackit-ip.sh`** `[networking, ip, iaas]`  
   Check whether a given IP address belongs to STACKIT's public IP ranges
-- **`check-terraform-numbered-files.sh`** `[terraform, lint, ci]`  
-  Verify that all Terraform files in an example follow the 3-digit numeric prefix naming convention
 - **`create-kubeconfig-multiple-projects.sh`** `[ske, kubernetes, kubeconfig, multi-project]`  
   Generate kubeconfig entries for every SKE cluster across one or more STACKIT projects
 - **`delete-unused-volumes.sh`** `[iaas, volume, compute]`  
