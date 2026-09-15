@@ -6,6 +6,12 @@ A reference implementation of a **hub-and-spoke network topology** on [STACKIT](
 
 The hub deploys an **OPNsense firewall** as the central routing and security component. All spoke traffic is forwarded through OPNsense for routing, NAT, and policy enforcement. Each project is a self-contained Terraform stack with independent state.
 
+> **Scope: networking only, not a Landing Zone.**
+> This example covers the **hub-and-spoke network topology** only, firewall placement, VPN routing, and spoke connectivity.
+> It does not include the IAM baseline, organisation structure, policy guardrails, or governance controls that make up a full Landing Zone.
+> If you need a complete Landing Zone setup, see the
+> [STACKIT Landing Zone example](../stackit-landing-zone/README.md) instead.
+
 ---
 
 ## Architecture
