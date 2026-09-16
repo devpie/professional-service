@@ -84,3 +84,6 @@ examples/iaas-edge-k8s-cluster/.stec.kubeconfig.json
 
 ### MCP generator output
 dist/
+
+### Build output (e.g. Terraform local_file resources)
+build/
