@@ -2,7 +2,8 @@
 
 General maintainers:
 
-- Jan Schreier (jan_marco.schreier_ext@external.schwarz.digits)
+- Jan Schreier (jan_marco.schreier_ext@external.digits.schwarz)
+- Mauritz Uphoff (mauritz.uphoff@digits.schwarz)
 
 This example is actively maintained. The owner is responsible for reviewing and updating dependencies and functionalities on a monthly basis.
 For questions, issues, or feature requests, please email general maintainers.
