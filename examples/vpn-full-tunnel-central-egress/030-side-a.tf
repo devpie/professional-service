@@ -53,9 +53,10 @@ resource "stackit_routing_table" "a_mgmt" {
   name            = "rt-mgmt-a"
   description     = "Jump host - keeps normal internet breakout, never full-tunnelled"
   system_routes   = true
-  # A second safeguard. The explicit internet route below already outranks
-  # anything learned via BGP, but with dynamic_routes off the announced default
-  # never enters this table in the first place.
+  # Keeps the routes the hub announces out of this table. The static internet
+  # route below cannot do that on its own: route type only decides between
+  # routes of the same prefix length, and the announced 0.0.0.0/1 and
+  # 128.0.0.0/1 are more specific than 0.0.0.0/0.
   dynamic_routes = false
 
   depends_on = [stackit_network_area_region.a]
@@ -167,9 +168,10 @@ resource "stackit_server" "a_client" {
   user_data          = local.cloud_init_common
 }
 
-# Pin the jump host's breakout explicitly. A static route always wins over a
-# route learned via BGP, so even a 0.0.0.0/0 announced by the remote side can
-# no longer drag the management network into the tunnel.
+# Pin the jump host's breakout explicitly. A static route wins over a BGP route
+# of the same prefix length, so a 0.0.0.0/0 announced by the remote side cannot
+# drag the management network into the tunnel. The more specific 0.0.0.0/1 +
+# 128.0.0.0/1 pair stays out because of dynamic_routes = false on this table.
 resource "stackit_routing_table_route" "a_mgmt_internet" {
   organization_id  = var.stackit_org_id
   network_area_id  = stackit_network_area.a.network_area_id

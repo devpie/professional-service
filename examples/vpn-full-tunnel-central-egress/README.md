@@ -174,20 +174,24 @@ This configuration keeps the management network on its own routing table with
 ```hcl
 resource "stackit_routing_table" "a_mgmt" {
   system_routes  = true
-  dynamic_routes = false # do not accept the announced default
+  dynamic_routes = false # keeps the routes announced by the hub out
 }
 
 resource "stackit_routing_table_route" "a_mgmt_internet" {
   routing_table_id = stackit_routing_table.a_mgmt.routing_table_id
   destination      = { type = "cidrv4", value = "0.0.0.0/0" }
-  next_hop         = { type = "internet" } # explicit breakout, beats BGP
+  next_hop         = { type = "internet" } # explicit breakout
 }
 ```
 
-With the explicit route in place, `dynamic_routes = true` would work just as
-well, because a static route outranks a BGP-learned one. `dynamic_routes = false`
-is kept as a second safeguard, so the announced default never enters this table
-in the first place.
+`dynamic_routes = false` is what keeps the management network out of the
+tunnel. STACKIT compares route types only between routes of the same prefix
+length, see
+[Routing tables](https://docs.stackit.cloud/products/network/core-networking/network-area/basics/routing-tables/).
+The hub announces `0.0.0.0/1` and `128.0.0.0/1`. Both are more specific than the
+static `0.0.0.0/0` and win against it. With `dynamic_routes = true`, the jump
+host would therefore be tunnelled as well. The static route wins only against an
+announced `0.0.0.0/0`, which has the same prefix length.
 
 ### Egress VM Routing Table
 
