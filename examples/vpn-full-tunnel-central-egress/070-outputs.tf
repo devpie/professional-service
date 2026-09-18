@@ -58,12 +58,12 @@ output "routing_table_mgmt_a_id" {
 }
 
 output "routing_table_main_a_id" {
-  description = "Default routing table of the spoke network area, where the BGP routes from the hub arrive."
+  description = "Default routing table of the spoke network area. VPN gateway A is attached to it, and the BGP routes from the hub arrive there."
   value       = local.a_main_routing_table_id
 }
 
 output "routing_table_main_b_id" {
-  description = "Default routing table of the hub network area, holding the route towards the egress machine."
+  description = "Default routing table of the hub network area. VPN gateway B is attached to it, and it holds the route towards the egress machine."
   value       = local.b_main_routing_table_id
 }
 

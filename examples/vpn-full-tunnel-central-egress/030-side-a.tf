@@ -43,10 +43,12 @@ resource "stackit_resourcemanager_project" "a" {
   }
 }
 
-# The VPN gateway always attaches to the SNA's *default* ("main") routing table,
-# and only that table receives the routes the gateway learns via BGP. So the
-# workload network stays on "main" and gets the default route pointed at the VPN;
-# the jump host opts out through a routing table of its own.
+# VPN gateway A is attached to the SNA's *default* ("main") routing table through
+# network_config in 050-vpn.tf. The routes it learns via BGP reach every routing
+# table with dynamic_routes = true, "main" included. The workload network stays
+# on "main" by choice and receives the
+# 0.0.0.0/1 + 128.0.0.0/1 pair the hub announces. The jump host opts out through
+# a routing table of its own with dynamic_routes = false.
 resource "stackit_routing_table" "a_mgmt" {
   organization_id = var.stackit_org_id
   network_area_id = stackit_network_area.a.network_area_id
@@ -70,7 +72,7 @@ resource "stackit_network" "a_mgmt" {
   depends_on       = [stackit_network_area_region.a]
 }
 
-# Client network - on the default routing table, i.e. the one the VPN gateway uses.
+# Client network - on the default routing table, the one VPN gateway A is attached to.
 resource "stackit_network" "a_client" {
   project_id       = stackit_resourcemanager_project.a.project_id
   name             = "client-a"
