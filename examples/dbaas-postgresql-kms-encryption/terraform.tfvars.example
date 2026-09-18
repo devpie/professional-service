@@ -1,0 +1,39 @@
+# Copyright 2026 Schwarz Digits Cloud GmbH & Co. KG
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Copy this file to terraform.tfvars and fill in your own values.
+# Required: stackit_project_id, acl, stackit_service_account_key_path
+
+stackit_project_id               = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+stackit_region                   = "eu01"
+stackit_service_account_key_path = "./keys/stackit-sa.json"
+
+instance_name = "pg-kms-example"
+
+# Only these networks may reach the instance. Use your own egress ranges.
+acl = ["203.0.113.10/32"]
+
+flavor_id        = "2.4"
+storage_class    = "premium-perf2-stackit"
+storage_size     = 10
+postgres_version = "17"
+
+# Cron expression in UTC, one run per day.
+backup_schedule = "0 2 * * *"
+
+# Backups are kept between 32 and 90 days.
+retention_days = 32
+
+# Fixed for the lifetime of the instance. Changing it replaces the instance.
+kek_key_version = "1"
