@@ -32,6 +32,16 @@ resource "stackit_vpn_gateway" "a" {
     override_advertised_routes = [var.sna_a_range]
   }
 
+  # Attach the gateway to the SNA's default ("main") routing table explicitly.
+  # Without network_config the API assigns a default table. Provider >= 0.115.0
+  # lets the configuration name the table. The provider plans a change of
+  # routing_table_id as an in-place update, not a new gateway. Do not add
+  # predefined_network_prefix to a running gateway: that attribute forces a new
+  # gateway with new public tunnel IPs.
+  network_config = {
+    routing_table_id = local.a_main_routing_table_id
+  }
+
   depends_on = [stackit_network_area_region.a, stackit_network.a_client]
 }
 
@@ -50,6 +60,12 @@ resource "stackit_vpn_gateway" "b" {
     local_asn = var.vpn_asn_b
     # This is what actually turns the VPN into a full tunnel for side A.
     override_advertised_routes = concat([var.sna_b_range], var.enable_full_tunnel_bgp ? var.full_tunnel_advertised_routes : [])
+  }
+
+  # Same as gateway A: the hub's "main" table, which also holds the route to the
+  # egress VM (060-routing.tf).
+  network_config = {
+    routing_table_id = local.b_main_routing_table_id
   }
 
   depends_on = [stackit_network_area_region.b, stackit_network.b_egress]

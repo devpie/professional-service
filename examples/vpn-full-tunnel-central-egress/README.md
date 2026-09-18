@@ -15,20 +15,21 @@ Two STACKIT projects are created, each with its own network area, three
 machines and one VPN gateway per side, connected over a BGP route-based IPsec
 tunnel pair.
 
-Tested with provider `stackitcloud/stackit` 0.114.0 in region `eu01`.
+Requires provider `stackitcloud/stackit` 0.115.0 or later, which added
+`network_config` to `stackit_vpn_gateway`.
 
 ```mermaid
 flowchart LR
     subgraph SNA_A["SNA A (spoke)"]
         direction TB
         client_a["client-a\n10.90.2.10\nrouting table: main\n_(dynamic_routes = true)_"]
-        gw_a["VPN gateway A\n10.90.0.4\nBGP AS 64520"]
+        gw_a["VPN gateway A\n10.90.0.4\nBGP AS 64520\nrouting table: main"]
         jump_a["jump-a\n10.90.1.10\nrouting table: rt-mgmt-a\n_(dynamic_routes = false)_"]
     end
 
     subgraph SNA_B["SNA B (hub)"]
         direction TB
-        gw_b["VPN gateway B\n10.91.0.4\nBGP AS 64521"]
+        gw_b["VPN gateway B\n10.91.0.4\nBGP AS 64521\nrouting table: main"]
         egress_b["egress-b\n10.91.1.10\nrouting table: rt-egress-b\nip_forward + MASQUERADE"]
     end
 
@@ -207,11 +208,38 @@ resource "stackit_routing_table" "b_egress" {
 return path to the spoke range is learned via BGP, so no static `10.90.0.0/16`
 entry is required.
 
+### Gateway Routing Table
+
+Since provider 0.115.0, `stackit_vpn_gateway` takes its routing table through
+`network_config.routing_table_id`. Without it, the API assigns a default routing
+table. This example attaches both gateways to their SNA's `main` table:
+
+```hcl
+resource "stackit_vpn_gateway" "a" {
+  network_config = {
+    routing_table_id = local.a_main_routing_table_id # the SNA's default table
+  }
+  # ...
+}
+```
+
+`main` is the SNA's default table and the table the gateways were attached to
+before, so the routing does not change. The configuration now names the table
+instead of leaving the choice to the API. On the hub side, `main` of SNA B also
+holds the route `0.0.0.0/0 → egress VM`.
+
+The provider plans a changed `routing_table_id` as an in-place update, not as a
+new gateway. The VPN API notes that gateway updates can trigger temporary
+connection re-negotiations. Do not add `predefined_network_prefix`, the other
+attribute of `network_config`, to a running gateway. It forces a new gateway
+with new public tunnel IPs, and the VPN connections change with it.
+
 ### Routing Table Feature Flags
 
 Routing tables are an experimental provider feature. The provider block needs
 `experiments = ["routing-tables"]` and every SNA needs the label
-`preview/routingtables = "true"`.
+`preview/routingtables = "true"`. The gateway's `network_config` needs no
+additional flag.
 
 ---
 
@@ -242,10 +270,11 @@ created in `stackit_org_id`. Projects are joined to their SNA through the label
 | `client-a` | spoke | `10.90.2.0/24` | `main` (SNA A) | none          | the workload whose traffic goes through the VPN |
 | `egress-b` | hub   | `10.91.1.0/24` | `rt-egress-b`  | via egress VM | hosts the central egress machine                |
 
-The VPN gateways are not in any of these networks. They attach to their SNA's
-default routing table and expose an endpoint inside the SNA range, one per
-tunnel — `10.90.0.4` / `10.90.0.5` on side A, `10.91.0.4` / `10.91.0.3` on side
-B. Those addresses come from
+The VPN gateways are not in any of these networks. Each is attached to its
+SNA's default routing table through `network_config.routing_table_id`. Each
+also exposes an endpoint inside the SNA range, one per tunnel — `10.90.0.4` /
+`10.90.0.5` on side A, `10.91.0.4` / `10.91.0.3` on side B. Those addresses
+come from
 `data.stackit_vpn_gateway_status.<x>.tunnels[i].internal_next_hop_ip`, and are
 what a static route towards the VPN uses as its `next_hop`.
 
@@ -253,16 +282,16 @@ what a static route towards the VPN uses as its `next_hop`.
 
 The routing tables determine the entire behaviour of this setup.
 
-| Routing table    | SNA | Networks attached | `system_routes` | `dynamic_routes` | Own static routes                                                |
-| ---------------- | --- | ----------------- | --------------- | ---------------- | ---------------------------------------------------------------- |
-| `main` (default) | A   | `client-a`        | yes             | yes              | none — inherits `0.0.0.0/1` + `128.0.0.0/1` from the hub via BGP |
-| `rt-mgmt-a`      | A   | `mgmt-a`          | yes             | **no**           | `0.0.0.0/0 → internet`                                           |
-| `main` (default) | B   | _none_            | yes             | yes              | `0.0.0.0/0 → 10.91.1.10`                                         |
-| `rt-egress-b`    | B   | `egress-b`        | yes             | yes              | none — learns `10.90.0.0/16` via BGP                             |
+| Routing table    | SNA | Attached                   | `system_routes` | `dynamic_routes` | Own static routes                                                |
+| ---------------- | --- | -------------------------- | --------------- | ---------------- | ---------------------------------------------------------------- |
+| `main` (default) | A   | `client-a`, VPN gateway A  | yes             | yes              | none — inherits `0.0.0.0/1` + `128.0.0.0/1` from the hub via BGP |
+| `rt-mgmt-a`      | A   | `mgmt-a`                   | yes             | **no**           | `0.0.0.0/0 → internet`                                           |
+| `main` (default) | B   | VPN gateway B (no network) | yes             | yes              | `0.0.0.0/0 → 10.91.1.10`                                         |
+| `rt-egress-b`    | B   | `egress-b`                 | yes             | yes              | none — learns `10.90.0.0/16` via BGP                             |
 
-Note that `main` on the hub side holds no network at all. It exists in this
-design only because VPN gateway B attaches to it, and because traffic coming out
-of the tunnel is looked up there.
+Note that `main` on the hub side holds no network at all. It matters in this
+design because VPN gateway B is attached to it through `network_config`, and
+because traffic coming out of the tunnel is looked up there.
 
 `main` is created by STACKIT with every SNA; the two `rt-*` tables are created by
 this example. Each SNA also contains a `STACKIT-internal-DO-NOT-MODIFY` table,
@@ -302,6 +331,7 @@ receives tunnelled traffic from arbitrary sources.
 | Local ASN          | `vpn_asn_a` (64520) | `vpn_asn_b` (64521)                        |
 | Announces          | `10.90.0.0/16`      | `10.91.0.0/16`, `0.0.0.0/1`, `128.0.0.0/1` |
 | Availability zones | `eu01-1` / `eu01-2` | `eu01-1` / `eu01-2`                        |
+| Routing table      | `main` (SNA A)      | `main` (SNA B)                             |
 | Connection         | `a-to-b`            | `b-to-a`                                   |
 
 Two tunnels per connection for HA, one per availability zone. The two ASNs must
@@ -323,7 +353,7 @@ definitions; it is written with `pre_shared_key_wo`, so it never lands in state.
 | `025-cloudinit.tf` | cloud-init for the debug machines and the NATing egress VM               |
 | `030-side-a.tf`    | spoke: SNA, project, `mgmt-a` + `client-a` networks, jump host, workload |
 | `040-side-b.tf`    | hub: SNA, project, `egress-b` network, egress VM                         |
-| `050-vpn.tf`       | both VPN gateways, both connections, BGP, IPsec parameters               |
+| `050-vpn.tf`       | both VPN gateways with routing table attachment, connections, BGP, IPsec |
 | `060-routing.tf`   | routing table lookups and the hub egress route                           |
 | `070-outputs.tf`   | IDs and IPs used for verification                                        |
 
@@ -433,10 +463,10 @@ terraform destroy
   with `ip_forward` and one `MASQUERADE` rule — sufficient to demonstrate the path,
   not a security control. A production central egress point would be a firewall
   appliance; see the [opnsense-hub-and-spoke](../opnsense-hub-and-spoke) example in this repository.
-- **The provider cannot pin a gateway to a routing table.** Version 0.114.0 does
-  not expose `networkConfig.routingTableId` on `stackit_vpn_gateway`, although
-  the REST API supports it. This does not constrain the design — see _Workload
-  Routing Table_ above.
+- **Upgrading from provider 0.114.0.** Provider 0.115.0 added `network_config`
+  to `stackit_vpn_gateway`. A deployment created with 0.114.0 gets the explicit
+  routing table as an in-place update of both gateways — see _Gateway Routing
+  Table_ above.
 - **BGP-learned routes are invisible in the CLI.**
   `stackit network-area routing-table route list` lists only **static** routes.
 - **Provider and API behaviour to expect.** Routing tables are created with an
