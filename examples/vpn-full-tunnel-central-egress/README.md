@@ -307,8 +307,7 @@ setup does not have: each SNA here holds exactly one project. It is left on
 
 ### Workloads
 
-All three machines are Ubuntu 24.04 (resolved at apply time via
-`data.stackit_image_v2.ubuntu`), `t3i.1`, 20 GB
+All three machines are Debian 13, `t3i.1`, 20 GB
 `storage_premium_perf1` boot volume, availability zone `eu01-1`, with the
 STACKIT server agent enabled and a `debug` user carrying `ssh_public_key`.
 
@@ -459,7 +458,7 @@ terraform destroy
 
 ## Notes
 
-- **The egress machine is deliberately simplified.** It is a plain Ubuntu box
+- **The egress machine is deliberately simplified.** It is a plain Debian 13 box
   with `ip_forward` and one `MASQUERADE` rule — sufficient to demonstrate the path,
   not a security control. A production central egress point would be a firewall
   appliance; see the [opnsense-hub-and-spoke](../opnsense-hub-and-spoke) example in this repository.

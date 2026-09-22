@@ -180,9 +180,9 @@ variable "vpn_availability_zones" {
 # --- machines ------------------------------------------------------------
 
 variable "image_id" {
-  description = "Image UUID for all three machines. Default is Ubuntu 24.04 in eu01."
+  description = "Image UUID for all three machines. Default is Debian 13 in eu01."
   type        = string
-  default     = "95d77000-d977-4ed1-8639-70ca359a5d1a"
+  default     = "1525a2a0-474c-4ece-a840-aca260348a9f"
 }
 
 variable "machine_type" {
