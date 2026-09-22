@@ -1,0 +1,8 @@
+stackit_project_id               = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+stackit_region                   = "eu01"
+stackit_service_account_key_path = "/path/to/sa-key.json"
+
+# Must be a free subnet inside the network range of the SNA this project belongs to
+network_ipv4_prefix = "10.40.20.0/24"
+
+cluster_name = "audit-demo"

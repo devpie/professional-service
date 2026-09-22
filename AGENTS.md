@@ -150,6 +150,8 @@ Fetch only the files relevant to the task. A typical example contains
   This example demonstrates how to deploy a SKE cluster with an NVIDIA H100 node pool and install the GPU Operator
 - **`ske-gpu-storage`** `[ske, juicefs, csi-driver, s3, object-storage, rwx, read-write-many, redis, kubernetes]`  
   This note describes several data storage options to support single node foundation model training on STACKIT Kubernetes Engine (SKE) with a focus on NVIDIA H100 nodes for computer vision and automotive applications. This includes **data hydration** (making data available for GPUs to achieve optimal GPU-utilization) and **checkpoint persistence** (writing and loading of training checkpoints for recovery) using STACKIT Object Storage
+- **`ske-kubeapi-audit-log`** `[ske, kubernetes, audit-log, kube-apiserver, observability, otel, telemetry-router, telemetry-link]`  
+  This example enables Kubernetes API server audit logging on an SKE cluster and ships the records through the **STACKIT Telemetry Router** into an **Observability instance**, where they can be analysed with LogQL in Grafana
 - **`ske-kubernetes-ephemeral-kubernetes-provider`** `[ske, kubernetes, terraform, provider, kubeconfig, ephemeral]`  
   Deploy an SKE cluster and use an ephemeral kubeconfig to configure the Kubernetes provider without writing credentials to state
 - **`ske-kubernetes-terraform-provider`** `[ske, kubernetes, terraform, provider, kubeconfig]`  
