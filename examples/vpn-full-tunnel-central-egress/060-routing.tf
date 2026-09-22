@@ -15,8 +15,9 @@
 # =========================================================================
 # Routing - this is where the full tunnel actually happens.
 #
-# A VPN gateway attaches to its SNA's default ("main") routing table, and only
-# tables with dynamic_routes = true receive what the gateway learns via BGP.
+# Both VPN gateways are attached to their SNA's default ("main") routing table
+# through network_config (see 050-vpn.tf), and only tables with
+# dynamic_routes = true receive what a gateway learns via BGP.
 # So the spoke's workload network simply stays on "main" and inherits the
 # 0.0.0.0/1 + 128.0.0.0/1 pair that the hub announces (see 050-vpn.tf). No
 # static route is needed on the spoke side.
