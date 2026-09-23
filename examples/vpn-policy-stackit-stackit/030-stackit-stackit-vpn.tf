@@ -42,12 +42,12 @@ module "vpn_sna_02" {
   ]
 }
 
-# Gateway 1 (vpn-sna-01)
+# Gateway 1 (vpn-sna-01) — policy-based: no BGP block, routing decided by traffic selectors
 resource "stackit_vpn_gateway" "vpn_01_gateway" {
   project_id   = module.vpn_sna_01.project_id
   display_name = "vpn01"
   plan_id      = "p500"
-  routing_type = "BGP_ROUTE_BASED"
+  routing_type = "POLICY_BASED"
 
   availability_zones = {
     tunnel1 = "eu01-1"
@@ -55,11 +55,6 @@ resource "stackit_vpn_gateway" "vpn_01_gateway" {
   }
 
   network_config = {}
-
-  bgp = {
-    local_asn                  = 64512
-    override_advertised_routes = ["10.10.0.0/16"]
-  }
 }
 
 data "stackit_vpn_gateway_status" "vpn_01_gateway_status" {
@@ -67,12 +62,12 @@ data "stackit_vpn_gateway_status" "vpn_01_gateway_status" {
   gateway_id = stackit_vpn_gateway.vpn_01_gateway.gateway_id
 }
 
-# Gateway 2 (vpn-sna-02)
+# Gateway 2 (vpn-sna-02) — policy-based: no BGP block, routing decided by traffic selectors
 resource "stackit_vpn_gateway" "vpn_02_gateway" {
   project_id   = module.vpn_sna_02.project_id
   display_name = "vpn02"
   plan_id      = "p500"
-  routing_type = "BGP_ROUTE_BASED"
+  routing_type = "POLICY_BASED"
 
   availability_zones = {
     tunnel1 = "eu01-1"
@@ -80,11 +75,6 @@ resource "stackit_vpn_gateway" "vpn_02_gateway" {
   }
 
   network_config = {}
-
-  bgp = {
-    local_asn                  = 64513
-    override_advertised_routes = ["10.11.0.0/16"]
-  }
 }
 
 data "stackit_vpn_gateway_status" "vpn_02_gateway_status" {
@@ -99,23 +89,20 @@ resource "random_password" "vpn_psk" {
 }
 
 # Connection from Gateway 1 to Gateway 2
+# local_subnets/remote_subnets are the traffic selectors (mandatory for POLICY_BASED)
 resource "stackit_vpn_connection" "vpn_01_connection" {
   project_id   = module.vpn_sna_01.project_id
   gateway_id   = stackit_vpn_gateway.vpn_01_gateway.gateway_id
   display_name = "conn-to-vpn02"
+
+  local_subnets  = ["10.10.0.0/16"]
+  remote_subnets = ["10.11.0.0/16"]
 
   tunnel1 = {
     remote_address            = data.stackit_vpn_gateway_status.vpn_02_gateway_status.tunnels[0].public_ip
     pre_shared_key_wo         = random_password.vpn_psk.result
     pre_shared_key_wo_version = 1
 
-    bgp = {
-      remote_asn = 64513
-    }
-    peering = {
-      local_address  = "169.254.0.1"
-      remote_address = "169.254.0.2"
-    }
     phase1 = {
       dh_groups             = ["modp2048"]
       encryption_algorithms = ["aes256gcm16"]
@@ -133,13 +120,6 @@ resource "stackit_vpn_connection" "vpn_01_connection" {
     pre_shared_key_wo         = random_password.vpn_psk.result
     pre_shared_key_wo_version = 1
 
-    bgp = {
-      remote_asn = 64513
-    }
-    peering = {
-      local_address  = "169.254.1.1"
-      remote_address = "169.254.1.2"
-    }
     phase1 = {
       dh_groups             = ["modp2048"]
       encryption_algorithms = ["aes256gcm16"]
@@ -154,23 +134,20 @@ resource "stackit_vpn_connection" "vpn_01_connection" {
 }
 
 # Connection from Gateway 2 to Gateway 1
+# Subnets are mirrored: what was local is now remote and vice versa
 resource "stackit_vpn_connection" "vpn_02_connection" {
   project_id   = module.vpn_sna_02.project_id
   gateway_id   = stackit_vpn_gateway.vpn_02_gateway.gateway_id
   display_name = "conn-to-vpn01"
+
+  local_subnets  = ["10.11.0.0/16"]
+  remote_subnets = ["10.10.0.0/16"]
 
   tunnel1 = {
     remote_address            = data.stackit_vpn_gateway_status.vpn_01_gateway_status.tunnels[0].public_ip
     pre_shared_key_wo         = random_password.vpn_psk.result
     pre_shared_key_wo_version = 1
 
-    bgp = {
-      remote_asn = 64512
-    }
-    peering = {
-      local_address  = "169.254.0.2"
-      remote_address = "169.254.0.1"
-    }
     phase1 = {
       dh_groups             = ["modp2048"]
       encryption_algorithms = ["aes256gcm16"]
@@ -188,13 +165,6 @@ resource "stackit_vpn_connection" "vpn_02_connection" {
     pre_shared_key_wo         = random_password.vpn_psk.result
     pre_shared_key_wo_version = 1
 
-    bgp = {
-      remote_asn = 64512
-    }
-    peering = {
-      local_address  = "169.254.1.2"
-      remote_address = "169.254.1.1"
-    }
     phase1 = {
       dh_groups             = ["modp2048"]
       encryption_algorithms = ["aes256gcm16"]

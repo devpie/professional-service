@@ -18,6 +18,10 @@ Once the deployment is complete, you can verify the VPN tunnel using the provisi
 2. **Ping** the private IP of the second debug machine (`vpn02_private_ip`) across the tunnel.
 
 ```bash
-# Example test command once connected to the vpn01 machine via SSH
+# SSH into the first debug machine
+ssh debug@<vpn01_public_ip>
+# password: debug123
+
+# Example test command once connected
 ping <vpn02_private_ip>
 ```
