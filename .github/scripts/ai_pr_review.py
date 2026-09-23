@@ -12,11 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""AI-powered PR review using STACKIT Model Serving and STACKIT Cloud Advisor.
-
-Both backends run in parallel for every check. Results are combined into a single
-consolidated comment on the Forgejo PR, with each backend's output clearly labelled.
-"""
+"""AI-powered PR review using STACKIT Model Serving."""
 
 import json
 import os
@@ -37,7 +33,6 @@ _REQUIRED_ENV = [
     "AI_API_URL",
     "AI_MODEL",
     "AI_BEARER_TOKEN",
-    "CLOUDMENT_TOKEN",
     "FORGEJO_TOKEN",
     "GITHUB_REPOSITORY",
     "PR_NUMBER",
@@ -61,8 +56,6 @@ validate_env()
 AI_API_URL = os.environ["AI_API_URL"].rstrip("/")
 AI_MODEL = os.environ["AI_MODEL"]
 AI_TOKEN = os.environ["AI_BEARER_TOKEN"]
-CLOUDMENT_TOKEN = os.environ["CLOUDMENT_TOKEN"]
-CLOUDMENT_API_URL = "https://app.essential.cloudment.io"
 FORGEJO_TOKEN = os.environ["FORGEJO_TOKEN"]
 REPOSITORY = os.environ["GITHUB_REPOSITORY"]
 PR_NUMBER = os.environ["PR_NUMBER"]
@@ -70,7 +63,7 @@ SERVER_URL = os.environ["GITHUB_SERVER_URL"].rstrip("/")
 BASE_REF = os.environ["BASE_REF"]
 
 # Secrets that must never appear in log output.
-_SECRETS = [AI_TOKEN, CLOUDMENT_TOKEN, FORGEJO_TOKEN]
+_SECRETS = [AI_TOKEN, FORGEJO_TOKEN]
 
 
 def sanitize(text: str) -> str:
@@ -652,12 +645,10 @@ def _run_check(check: dict) -> tuple[str, str | None, str | None]:
         return title, None, None
 
     llm_cfg = check.get("llm")
-    advisor_cfg = check.get("advisor")
 
     llm_future = None
-    advisor_future = None
 
-    with ThreadPoolExecutor(max_workers=2) as pool:
+    with ThreadPoolExecutor(max_workers=1) as pool:
         if llm_cfg:
             llm_future = pool.submit(
                 call_llm,
@@ -665,14 +656,9 @@ def _run_check(check: dict) -> tuple[str, str | None, str | None]:
                 content,
                 additions_only=llm_cfg.get("additions_only", True),
             )
-        if advisor_cfg:
-            advisor_future = pool.submit(
-                call_advisor,
-                advisor_cfg["question_fn"](content),
-            )
 
     llm_result = llm_future.result() if llm_future else None
-    advisor_result = advisor_future.result() if advisor_future else None
+    advisor_result = None
 
     return title, llm_result, advisor_result
 
@@ -691,7 +677,7 @@ def main():
 
     parts = [
         "## 🤖 AI PR Review\n",
-        f"> [`{short_sha}`]({commit_url}) · STACKIT Model Serving & STACKIT Cloud Advisor\n",
+        f"> [`{short_sha}`]({commit_url}) · STACKIT Model Serving\n",
     ]
 
     # Run all checks in parallel; within each check, LLM + Advisor also run in parallel.
