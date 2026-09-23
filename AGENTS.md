@@ -166,8 +166,8 @@ Fetch only the files relevant to the task. A typical example contains
   This guide walks you through setting up log-based alerting in STACKIT Observability using Grafana Alloy to ship Kubernetes logs
 - **`ske-s3-csi-juicefs`** `[ske, juicefs, csi-driver, s3, object-storage, rwx, read-write-many, key-value-store, valkey, kubernetes]`  
   Mounts STACKIT Object Storage as a `ReadWriteMany` Kubernetes volume on SKE using the [JuiceFS CSI driver](https://github.com/juicedata/juicefs-csi-driver)
-- **`ske-stackit-sfs-integration`** `[ske, nfs, sfs, storage, kubernetes, rwx, file-storage]`  
-  Terraform Example of deploying a STACKIT File Storage NFS Service
+- **`ske-stackit-sfs-integration`** `[ske, nfs, sfs, storage, kubernetes, rwx, file-storage, csi, ephemeral]`  
+  Mounts a STACKIT File Storage share as a `ReadWriteMany` volume in an SKE cluster, so several pods on different nodes write to the same store
 - **`ske-velero-backup`** `[ske, velero, backup, object-storage, kubernetes]`  
   This example deploys [Velero](https://velero.io/) on a STACKIT Kubernetes Engine (SKE) cluster using STACKIT Object Storage as the backup backend
 - **`ske-workload-identity`** `[ske, workload-identity, iam, kubernetes, oidc, service-account]`  

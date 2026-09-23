@@ -57,6 +57,23 @@ spec:
       labels:
         app: rwx-test
     spec:
+      # Without this, all four replicas may land on one node, and the demo would
+      # show several pods on one node sharing a mount rather than several nodes
+      # mounting the share at once. maxSkew spreads them over the nodes.
+      # minDomains makes a single-node cluster visible: the global minimum is
+      # then treated as 0, so only one replica schedules and the rest stay
+      # Pending instead of quietly piling onto that one node.
+      topologySpreadConstraints:
+        - maxSkew: 1
+          minDomains: 2
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          # SKE cordons nodes during maintenance. Without this, a cordoned node
+          # still counts as a domain and replicas stay Pending.
+          nodeTaintsPolicy: Honor
+          labelSelector:
+            matchLabels:
+              app: rwx-test
       containers:
         - image: ubuntu:focal
           imagePullPolicy: IfNotPresent
