@@ -48,3 +48,16 @@ az vm run-command invoke \
   --command-id RunShellScript \
   --scripts 'ping -c 4 <vpn01_private_ip>'
 ```
+
+### 2. Test from STACKIT to Azure
+
+SSH into the STACKIT debug machine using its public IP, then ping the private Azure VM across the tunnel.
+
+```bash
+# SSH into the STACKIT debug machine
+ssh debug@<vpn01_public_ip>
+# password: debug123
+
+# Ping the Azure private IP (copy from the `azure_test_vm_private_ip` output)
+ping <azure_test_vm_private_ip>
+```
