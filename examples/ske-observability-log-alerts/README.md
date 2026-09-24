@@ -17,7 +17,6 @@ Any agent that speaks the Loki push API can fill this role.
 alternatives, and the Observability instance also accepts OTLP directly through its
 `otlp_http_logs_url`.
 
-
 ## Usage
 
 ```bash
