@@ -6,6 +6,29 @@ This example establishes a policy-based IPsec VPN connection between two separat
 
 Unlike BGP-based or route-based VPNs, a policy-based VPN uses **traffic selectors** (`local_subnets` / `remote_subnets`) to decide which traffic enters the tunnel. There is no dynamic routing protocol — the gateway creates a dedicated IPsec Security Association (SA) for each subnet pair defined in the policy.
 
+## When to use this example
+
+**Use policy-based when:**
+
+- The remote peer **only supports policy-based VPN** (older firewalls, some managed or legacy appliances that have no VTI support)
+- The set of subnets is **small and stable** — each subnet pair requires its own SA, so a long or frequently changing list becomes hard to maintain
+- You need the traffic selector **enforced at the IPsec engine level**, not just by routing
+
+**Do not use policy-based when:**
+
+- The subnet list **changes frequently** — use [route-based](../vpn-route-stackit-stackit/) (static routes) or [BGP](../vpn-bgp-stackit-stackit/) (dynamic)
+- The remote peer **supports BGP** — use [BGP route-based](../vpn-bgp-stackit-stackit/) for automatic route propagation and faster failover
+
+## Choosing the right VPN type
+
+|                             | Policy-based              | Route-based                 | BGP route-based                   |
+| --------------------------- | ------------------------- | --------------------------- | --------------------------------- |
+| `routing_type`              | `POLICY_BASED`            | `ROUTE_BASED`               | `BGP_ROUTE_BASED`                 |
+| Routes defined by           | Traffic selectors         | `static_routes`             | BGP advertisements                |
+| Remote subnet changes       | Terraform change required | Terraform change required   | Automatic                         |
+| BGP required on remote peer | No                        | No                          | Yes                               |
+| Typical use case            | Legacy appliances         | On-prem appliances with VTI | Cloud providers, modern firewalls |
+
 ## Architecture
 
 |                | SNA 01          | SNA 02          |

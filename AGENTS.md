@@ -188,6 +188,8 @@ Fetch only the files relevant to the task. A typical example contains
   This example deploys a workload in one [STACKIT Network Area](https://docs.stackit.cloud/products/network/core-networking/network-area/) (SNA) that sends **all** of its traffic — including internet traffic — through the [STACKIT Managed VPN](https://docs.stackit.cloud/products/network/connectivity-hybrid-multi-cloud/vpn/) into a second SNA, where one central machine is the only way out to the internet. A jump host in the same spoke SNA deliberately keeps its own local breakout
 - **`vpn-policy-stackit-stackit`** `[vpn, networking, ipsec, site-to-site, policy-based]`  
   This example establishes a policy-based IPsec VPN connection between two separate STACKIT Network Areas (SNAs)
+- **`vpn-route-stackit-stackit`** `[vpn, networking, ipsec, site-to-site, route-based]`  
+  This example establishes a route-based IPsec VPN connection between two separate STACKIT Network Areas (SNAs)
 
 ## Scripts
 
