@@ -1,4 +1,4 @@
-<!-- tags: vpn, networking, ipsec, site-to-site, policy-based -->
+<!-- tags: vpn, networking, ipsec, site-to-site, policy-based, sna -->
 
 # STACKIT-to-STACKIT Policy-Based VPN Gateway
 

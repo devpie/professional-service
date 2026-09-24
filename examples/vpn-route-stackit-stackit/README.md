@@ -1,4 +1,4 @@
-<!-- tags: vpn, networking, ipsec, site-to-site, route-based -->
+<!-- tags: vpn, networking, ipsec, site-to-site, route-based, sna -->
 
 # STACKIT-to-STACKIT Route-Based VPN Gateway
 
