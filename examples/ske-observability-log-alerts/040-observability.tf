@@ -23,7 +23,7 @@ locals {
         name = "EmailStackit",
         email_configs = [
           {
-            to = "<email>"
+            to = var.alert_email
           }
         ]
       }
@@ -32,13 +32,13 @@ locals {
 }
 
 resource "stackit_observability_instance" "example" {
-  project_id   = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-  name         = "example"
-  plan_name    = "Observability-Large-EU01"
+  project_id   = var.stackit_project_id
+  name         = var.cluster_name
+  plan_name    = var.observability_plan_name
   alert_config = local.alert_config
 }
 
 resource "stackit_observability_credential" "example" {
-  project_id  = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+  project_id  = var.stackit_project_id
   instance_id = stackit_observability_instance.example.instance_id
 }

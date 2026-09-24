@@ -12,24 +12,35 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-resource "kubernetes_namespace" "monitoring" {
+resource "kubernetes_namespace_v1" "example" {
   metadata {
-    name = "monitoring"
+    name = var.workload_namespace
   }
 }
 
-resource "helm_release" "promtail" {
-  name       = "promtail"
-  repository = "https://grafana.github.io/helm-charts"
-  chart      = "promtail"
-  namespace  = kubernetes_namespace.monitoring.metadata.0.name
-  version    = "6.16.4"
+resource "kubernetes_pod_v1" "logger" {
+  metadata {
+    name      = "logger"
+    namespace = kubernetes_namespace_v1.example.metadata[0].name
+    labels = {
+      app = "logger"
+    }
+  }
 
-  values = [
-    <<-EOF
-    config:
-      clients:
-      - url: "https://${stackit_observability_credential.example.username}:${stackit_observability_credential.example.password}@<your-loki-push-url>/instances/${stackit_observability_instance.example.instance_id}/loki/api/v1/push"
-    EOF
-  ]
+  spec {
+    container {
+      name  = "logger"
+      image = "bash"
+      command = [
+        "bash",
+        "-c",
+        <<EOF
+        while true; do
+          sleep $(shuf -i 1-3 -n 1)
+          echo "ERROR: $(date) - Simulated error message $(shuf -i 1-100 -n 1)" 1>&2
+        done
+        EOF
+      ]
+    }
+  }
 }

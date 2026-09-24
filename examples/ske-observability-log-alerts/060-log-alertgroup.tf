@@ -13,14 +13,14 @@
 # limitations under the License.
 
 resource "stackit_observability_logalertgroup" "example" {
-  project_id  = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+  project_id  = var.stackit_project_id
   instance_id = stackit_observability_instance.example.instance_id
   name        = "TestLogAlertGroup"
   interval    = "1m"
   rules = [
     {
       alert      = "SimplePodLogAlertCheck"
-      expression = "sum(rate({namespace=\"example\", pod=\"logger\"} |= \"Simulated error message\" [1m])) > 0"
+      expression = "sum(rate({namespace=\"${var.workload_namespace}\", pod=\"logger\"} |= \"Simulated error message\" [1m])) > 0"
       for        = "60s"
       labels = {
         severity = "critical"

@@ -16,22 +16,22 @@ terraform {
   required_providers {
     stackit = {
       source  = "stackitcloud/stackit"
-      version = ">= 0.94.0"
+      version = ">= 0.116.0"
     }
     kubernetes = {
       source  = "hashicorp/kubernetes"
-      version = ">= 3.1.0"
+      version = ">= 3.2.1"
     }
     helm = {
       source  = "hashicorp/helm"
-      version = ">= 3.1.1"
+      version = ">= 3.3.0"
     }
   }
 }
 
 provider "stackit" {
-  default_region           = "eu01"
-  service_account_key_path = ""
+  default_region           = var.stackit_region
+  service_account_key_path = var.stackit_service_account_key_path
 }
 
 provider "kubernetes" {
