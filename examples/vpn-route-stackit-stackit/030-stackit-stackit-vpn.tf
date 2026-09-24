@@ -96,6 +96,9 @@ resource "stackit_vpn_connection" "vpn_01_connection" {
   gateway_id   = stackit_vpn_gateway.vpn_01_gateway.gateway_id
   display_name = "conn-to-vpn02"
 
+  # The full SNA range is used here for simplicity. You can replace this with
+  # more specific network CIDRs to limit what traffic is routed through the tunnel, e.g.:
+  # static_routes = ["10.11.11.0/24", "10.11.20.0/24"]
   static_routes = ["10.11.0.0/16"]
 
   tunnel1 = {
@@ -139,6 +142,7 @@ resource "stackit_vpn_connection" "vpn_02_connection" {
   gateway_id   = stackit_vpn_gateway.vpn_02_gateway.gateway_id
   display_name = "conn-to-vpn01"
 
+  # Mirrored from the connection above: advertises GW1's network to GW2.
   static_routes = ["10.10.0.0/16"]
 
   tunnel1 = {

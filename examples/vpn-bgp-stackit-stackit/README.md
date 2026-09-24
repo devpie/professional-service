@@ -1,4 +1,4 @@
-<!-- tags: vpn, networking, ipsec, site-to-site, ha, bgp -->
+<!-- tags: vpn, networking, ipsec, site-to-site, bgp, sna -->
 
 # STACKIT-to-STACKIT VPN Gateway
 

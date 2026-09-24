@@ -95,6 +95,10 @@ resource "stackit_vpn_connection" "vpn_01_connection" {
   gateway_id   = stackit_vpn_gateway.vpn_01_gateway.gateway_id
   display_name = "conn-to-vpn02"
 
+  # The full SNA range is used here for simplicity. You can replace these with
+  # more specific network CIDRs to limit what traffic enters the tunnel, e.g.:
+  #   local_subnets  = ["10.10.10.0/24", "10.10.20.0/24"]
+  #   remote_subnets = ["10.11.11.0/24"]
   local_subnets  = ["10.10.0.0/16"]
   remote_subnets = ["10.11.0.0/16"]
 
@@ -140,6 +144,7 @@ resource "stackit_vpn_connection" "vpn_02_connection" {
   gateway_id   = stackit_vpn_gateway.vpn_02_gateway.gateway_id
   display_name = "conn-to-vpn01"
 
+  # Mirrored from the connection above: local and remote are swapped.
   local_subnets  = ["10.11.0.0/16"]
   remote_subnets = ["10.10.0.0/16"]
 
