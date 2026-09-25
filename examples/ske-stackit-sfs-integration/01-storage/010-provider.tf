@@ -12,20 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-resource "stackit_resourcemanager_project" "sfs-no-folder" {
-  parent_container_id = var.STACKIT_ORG_ID
-  name                = "sfs-example"
-  labels = {
-    "networkArea" = stackit_network_area.sfs.network_area_id
+# STACKIT only: no Kubernetes, no Helm, no ephemeral resource.
+terraform {
+  required_version = ">= 1.5.0"
+  required_providers {
+    stackit = {
+      source  = "stackitcloud/stackit"
+      version = ">= 0.116.0"
+    }
   }
-  owner_email = "markus.brunsch@stackit.cloud"
 }
 
-resource "stackit_resourcemanager_project" "sfs-folder" {
-  parent_container_id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" #Folder ID Demos
-  name                = "sfs-example-folder"
-  labels = {
-    "networkArea" = stackit_network_area.sfs.network_area_id
-  }
-  owner_email = "markus.brunsch@stackit.cloud"
+provider "stackit" {
+  default_region           = var.stackit_region
+  service_account_key_path = var.stackit_service_account_key_path
+
+  # The stackit_sfs_* resources are beta.
+  enable_beta_resources = true
 }

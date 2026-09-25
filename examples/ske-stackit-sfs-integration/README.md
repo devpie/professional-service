@@ -1,44 +1,47 @@
-<!-- tags: ske, nfs, sfs, storage, kubernetes, rwx, file-storage -->
+<!-- tags: ske, nfs, sfs, storage, kubernetes, rwx, file-storage, csi, ephemeral -->
 
-# STACKIT File Storage Example Deployment
+# STACKIT File Storage on SKE
 
-Terraform Example of deploying a STACKIT File Storage NFS Service
+Mounts a STACKIT File Storage share as a `ReadWriteMany` volume in an SKE cluster, so
+several pods on different nodes write to the same store.
 
-## Deployment Scope
+| Stage                      | Creates                                                                  |
+| -------------------------- | ------------------------------------------------------------------------ |
+| [`01-storage`](01-storage) | Network area, project, SFS resource pool, export policy and share        |
+| [`02-cluster`](02-cluster) | Network, SKE cluster, `csi-driver-nfs` and the `nfs-client` StorageClass |
 
-- Network Area with Routing Tables Enabled
-- Projects attached to the Network area
-- STACKIT SFS Resources
-- SKE Cluster for RWX usage
+Two stages, because the resource pool is slow and only `01-storage` needs rights on the
+organization.
 
-## Setup RWX on SKE with STACKIT SFS
-
-**Install Helmchart**
-
-```bash
-helm repo add nfs-subdir-external-provisioner https://kubernetes-sigs.github.io/nfs-subdir-external-provisioner/
-helm repo update
-```
+## Order
 
 ```bash
-helm install nfs-provisioner nfs-subdir-external-provisioner/nfs-subdir-external-provisioner \
-    --set nfs.server=1.2.3.4 \
-    --set nfs.path=/srv/nfs/storage \
-    --set storageClass.name=nfs-client
+cd 01-storage
+cp terraform.tfvars.example terraform.tfvars   # org, parent container, email
+terraform init && terraform apply
+
+cd ../02-cluster
+terraform init && terraform apply
 ```
 
-**Create PersistentVolumeClaim from NFS Storage**
+`02-cluster` reads the project ID and the mount path out of
+`../01-storage/terraform.tfstate`. Nothing is copied by hand.
 
-```yaml
-kind: PersistentVolumeClaim
-apiVersion: v1
-metadata:
-  name: test-claim
-spec:
-  storageClassName: nfs-client
-  accessModes:
-    - ReadWriteMany
-  resources:
-    requests:
-      storage: 1Mi
-```
+Tear down in reverse.
+
+## Requirements
+
+- Terraform 1.5 or later, 1.10 for `02-cluster` because of its ephemeral resource.
+- STACKIT provider 0.116.0 or later.
+- Rights on the organization for `01-storage`. It creates the network area, and the
+  project that carries the cluster: SKE rejects a cluster whose project sits in a folder.
+- The `stackit` CLI and `kubectl` for the verify step of `02-cluster`.
+
+`enable_beta_resources` and `experiments = ["ske"]` are already set where needed.
+
+## How the two halves meet
+
+The share's `mount_path` has the form `10.2.1.1:/rp_VKL20Ub/nfs-share`. `02-cluster`
+splits it into the StorageClass parameters `server` and `share`. The nodes reach the
+share because the cluster network takes its prefix from the network area range, which is
+what the export policy accepts.

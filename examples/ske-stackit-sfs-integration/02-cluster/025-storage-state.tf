@@ -12,19 +12,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Define required providers
-terraform {
-  required_version = ">= 0.14.0"
-  required_providers {
-    stackit = {
-      source  = "stackitcloud/stackit"
-      version = "0.79.0"
-    }
+# Reads the outputs of 01-storage. The count skips that when both values are
+# given explicitly.
+data "terraform_remote_state" "storage" {
+  count = var.stackit_project_id == null || var.sfs_mount_path == null ? 1 : 0
+
+  backend = "local"
+  config = {
+    path = var.storage_state_path
   }
 }
 
-provider "stackit" {
-  default_region           = "eu01"
-  service_account_key_path = "secrets.json"
-  enable_beta_resources    = true
+locals {
+  storage_outputs = one(data.terraform_remote_state.storage[*].outputs)
+
+  stackit_project_id = coalesce(
+    var.stackit_project_id,
+    try(local.storage_outputs.project_id, null),
+  )
+
+  sfs_mount_path = coalesce(
+    var.sfs_mount_path,
+    try(local.storage_outputs.sfs_mount_path, null),
+  )
 }

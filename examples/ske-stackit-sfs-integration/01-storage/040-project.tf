@@ -12,24 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Get vNET Networks
-resource "stackit_network_area" "sfs" {
-  organization_id = var.STACKIT_ORG_ID
-  name            = "sfs-network-area"
+# Carries the SKE cluster, so it has to sit directly under the organization:
+# SKE rejects a cluster in a folder-nested project.
+resource "stackit_resourcemanager_project" "sfs" {
+  parent_container_id = var.stackit_parent_container_id
+  name                = var.project_name
+  owner_email         = var.stackit_admin_email
   labels = {
-    "preview/routingtables" = "true"
+    "networkArea" = stackit_network_area.sfs.network_area_id
   }
-}
 
-resource "stackit_network_area_region" "sfs" {
-  organization_id = var.STACKIT_ORG_ID
-  network_area_id = stackit_network_area.sfs.network_area_id
-  ipv4 = {
-    transfer_network = "10.1.2.0/24"
-    network_ranges = [
-      {
-        prefix = "10.0.0.0/16"
-      }
-    ]
-  }
+  # The region is only released once no project references it, so on destroy the
+  # project has to go first.
+  depends_on = [stackit_network_area_region.sfs]
 }

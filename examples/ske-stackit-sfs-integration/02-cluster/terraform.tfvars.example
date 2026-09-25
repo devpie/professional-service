@@ -1,0 +1,8 @@
+# Copy this file to terraform.tfvars only if you need to override something.
+#
+# Project and mount path are read from ../01-storage/terraform.tfstate.
+
+# storage_state_path = "../01-storage/terraform.tfstate"
+# stackit_project_id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+# sfs_mount_path     = "10.2.1.1:/rp_VKL20Ub/nfs-share"
+# stackit_service_account_key_path = "/path/to/stackit-sa.json"

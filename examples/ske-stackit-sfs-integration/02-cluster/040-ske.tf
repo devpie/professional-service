@@ -13,25 +13,19 @@
 # limitations under the License.
 
 resource "stackit_ske_cluster" "sfs" {
-  project_id             = stackit_resourcemanager_project.sfs-no-folder.project_id
-  name                   = "sfs"
-  kubernetes_version_min = "1.34"
+  project_id             = local.stackit_project_id
+  name                   = var.ske_cluster_name
+  kubernetes_version_min = var.kubernetes_version_min
   node_pools = [
     {
       name               = "np-example"
-      machine_type       = "c2i.2"
-      minimum            = "1"
-      maximum            = "3"
-      availability_zones = ["eu01-3"]
+      machine_type       = var.ske_machine_type
+      minimum            = var.ske_node_pool_minimum
+      maximum            = var.ske_node_pool_maximum
+      availability_zones = var.ske_availability_zones
     }
   ]
   network = {
-    id = stackit_network.sfs-example.network_id
+    id = stackit_network.sfs.network_id
   }
-}
-
-resource "stackit_network" "sfs-example" {
-  project_id       = stackit_resourcemanager_project.sfs-no-folder.project_id
-  name             = "ske-example"
-  ipv4_nameservers = ["9.9.9.9"]
 }
