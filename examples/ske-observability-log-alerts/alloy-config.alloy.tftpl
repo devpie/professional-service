@@ -1,0 +1,74 @@
+// Grafana Alloy configuration: ship Kubernetes container logs to STACKIT Observability.
+// Component reference: https://grafana.com/docs/alloy/latest/reference/components/
+
+// Alloy runs as a DaemonSet, so every Pod discovers only the workloads on its own node.
+discovery.kubernetes "pods" {
+	role = "pod"
+
+	selectors {
+		role  = "pod"
+		field = "spec.nodeName=" + sys.env("NODE_NAME")
+	}
+}
+
+discovery.relabel "pod_logs" {
+	targets = discovery.kubernetes.pods.targets
+
+	rule {
+		source_labels = ["__meta_kubernetes_namespace"]
+		target_label  = "namespace"
+	}
+
+	rule {
+		source_labels = ["__meta_kubernetes_pod_name"]
+		target_label  = "pod"
+	}
+
+	rule {
+		source_labels = ["__meta_kubernetes_pod_container_name"]
+		target_label  = "container"
+	}
+
+	rule {
+		source_labels = ["__meta_kubernetes_pod_label_app"]
+		target_label  = "app"
+	}
+
+	// The kubelet writes container logs to
+	// /var/log/pods/<namespace>_<pod>_<uid>/<container>/*.log
+	rule {
+		source_labels = ["__meta_kubernetes_pod_uid", "__meta_kubernetes_pod_container_name"]
+		separator     = "/"
+		action        = "replace"
+		replacement   = "/var/log/pods/*$1/*.log"
+		target_label  = "__path__"
+	}
+}
+
+local.file_match "pod_logs" {
+	path_targets = discovery.relabel.pod_logs.output
+}
+
+loki.source.file "pod_logs" {
+	targets    = local.file_match.pod_logs.targets
+	forward_to = [loki.process.cri.receiver]
+}
+
+// containerd writes CRI-formatted lines. stage.cri splits off timestamp and
+// stream and keeps only the log message as the line content.
+loki.process "cri" {
+	stage.cri { }
+
+	forward_to = [loki.write.observability.receiver]
+}
+
+loki.write "observability" {
+	endpoint {
+		url = "${logs_push_url}"
+
+		basic_auth {
+			username = sys.env("OBSERVABILITY_USERNAME")
+			password = sys.env("OBSERVABILITY_PASSWORD")
+		}
+	}
+}

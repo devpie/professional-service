@@ -162,8 +162,8 @@ Fetch only the files relevant to the task. A typical example contains
   When your application is accessed through a Load Balancer, the original client IP may not be visible to your pods unless the **TCP Proxy Protocol** is enabled and properly configured. STACKIT supports Proxy Protocol version 2. Please follow the steps below to ensure your application and ingress-nginx controller can correctly receive and log the original client IP
 - **`ske-observability-alerting-kube-state-metrics`** `[ske, observability, alerting, prometheus, kube-state-metrics, kubernetes]`  
   This guide explains how to configure the STACKIT Observability product to send alerts using metrics gathered from kube-state-metrics
-- **`ske-observability-log-alerts`** `[ske, observability, logging, alerting, promtail, kubernetes]`  
-  This guide walks you through setting up log-based alerting in STACKIT Observability using Promtail to ship Kubernetes logs
+- **`ske-observability-log-alerts`** `[ske, observability, logging, alerting, alloy, kubernetes]`  
+  This guide walks you through setting up log-based alerting in STACKIT Observability using Grafana Alloy to ship Kubernetes logs
 - **`ske-s3-csi-juicefs`** `[ske, juicefs, csi-driver, s3, object-storage, rwx, read-write-many, key-value-store, valkey, kubernetes]`  
   Mounts STACKIT Object Storage as a `ReadWriteMany` Kubernetes volume on SKE using the [JuiceFS CSI driver](https://github.com/juicedata/juicefs-csi-driver)
 - **`ske-stackit-sfs-integration`** `[ske, nfs, sfs, storage, kubernetes, rwx, file-storage]`  
