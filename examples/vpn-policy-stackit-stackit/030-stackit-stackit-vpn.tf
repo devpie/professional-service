@@ -16,12 +16,12 @@ module "vpn_sna_01" {
   source                    = "../../modules/stackit-sna-with-debug-machine"
   machine_availability_zone = "eu01-1"
   machine_ipv4_prefix       = "10.10.10.0/24"
-  machine_network_name      = "vpn-sna-01"
-  sna_name                  = "vpn-sna-01"
-  machine_name              = "vpn-sna-01"
+  machine_network_name      = var.stackit_sna_name_sna_01
+  sna_name                  = var.stackit_sna_name_sna_01
+  machine_name              = var.stackit_sna_name_sna_01
   stackit_admin_email       = var.stackit_admin_email
   stackit_org_id            = var.stackit_org_id
-  stackit_project_name      = "vpn-sna-01"
+  stackit_project_name      = var.stackit_project_name_sna_01
   sna_network_range_prefix = [
     "10.10.0.0/16"
   ]
@@ -31,12 +31,12 @@ module "vpn_sna_02" {
   source                    = "../../modules/stackit-sna-with-debug-machine"
   machine_availability_zone = "eu01-2"
   machine_ipv4_prefix       = "10.11.11.0/24"
-  machine_network_name      = "vpn-sna-02"
-  machine_name              = "vpn-sna-02"
-  sna_name                  = "vpn-sna-02"
+  machine_network_name      = var.stackit_sna_name_sna_02
+  machine_name              = var.stackit_sna_name_sna_02
+  sna_name                  = var.stackit_sna_name_sna_02
   stackit_admin_email       = var.stackit_admin_email
   stackit_org_id            = var.stackit_org_id
-  stackit_project_name      = "vpn-sna-02"
+  stackit_project_name      = var.stackit_project_name_sna_02
   sna_network_range_prefix = [
     "10.11.0.0/16"
   ]

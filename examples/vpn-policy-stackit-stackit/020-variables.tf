@@ -30,3 +30,19 @@ variable "stackit_service_account_key_path" {
 variable "stackit_admin_email" {
   type = string
 }
+
+variable "stackit_project_name_sna_01" {
+  type = string
+}
+
+variable "stackit_sna_name_sna_01" {
+  type = string
+}
+
+variable "stackit_project_name_sna_02" {
+  type = string
+}
+
+variable "stackit_sna_name_sna_02" {
+  type = string
+}
