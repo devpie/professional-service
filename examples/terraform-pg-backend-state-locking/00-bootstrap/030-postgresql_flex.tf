@@ -12,28 +12,31 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+data "stackit_postgresflex_flavors" "this" {
+  project_id = stackit_resourcemanager_project.this.project_id
+}
+
 # Provision PostgreSQL Flex Database Instance
 resource "stackit_postgresflex_instance" "this" {
   project_id = stackit_resourcemanager_project.this.project_id
   name       = "tf-state-instance"
   version    = "17"
 
-  flavor = {
-    cpu = 2
-    ram = 4
-  }
+  flavor_id = one([for f in data.stackit_postgresflex_flavors.this.flavors : f.id if f.cpu == 2 && f.memory == 4 && f.node_type == "Single"])
   storage = {
     class = "premium-perf2-stackit"
     size  = 10
   }
 
-  replicas        = 1
-  backup_schedule = "00 00 * * *"
+  backup_schedule = "0 0 * * *"
+  retention_days  = 32
 
-  acl = [
-    # WARNING: Open ACL is for development only. Restrict to your specific egress IP ranges in production.
-    "0.0.0.0/0"
-  ]
+  network = {
+    acl = [
+      # WARNING: Open ACL is for development only. Restrict to your specific egress IP ranges in production.
+      "0.0.0.0/0"
+    ]
+  }
 
 }
 

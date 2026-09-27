@@ -15,8 +15,8 @@
 locals {
   pg_username = stackit_postgresflex_user.db_owner.username
   pg_password = stackit_postgresflex_user.db_owner.password
-  pg_host     = stackit_postgresflex_user.db_owner.host
-  pg_port     = stackit_postgresflex_user.db_owner.port
+  pg_host     = stackit_postgresflex_instance.this.connection_info.write.host
+  pg_port     = stackit_postgresflex_instance.this.connection_info.write.port
   pg_database = stackit_postgresflex_database.this.name
 }
 
