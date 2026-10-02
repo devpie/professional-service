@@ -21,13 +21,13 @@ prometheus:
           # both values need to be configured according to your observability plan
           capacity: 30000
           maxSamplesPerSend: 3000
-          writeRelabelConfigs:
-            - sourceLabels: ['__name__']
-              regex: 'apiserver_.*|etcd_.*|prober_.*|storage_.*|workqueue_(work|queue)_duration_seconds_bucket|kube_pod_tolerations|kubelet_.*|kubernetes_feature_enabled|instance_scrape_target_status'
-              action: 'drop'
-            - sourceLabels: ['namespace']
-              regex: 'example'
-              action: 'keep'
+        writeRelabelConfigs:
+          - sourceLabels: ['__name__']
+            regex: 'apiserver_.*|etcd_.*|prober_.*|storage_.*|workqueue_(work|queue)_duration_seconds_bucket|kube_pod_tolerations|kubelet_.*|kubernetes_feature_enabled|instance_scrape_target_status'
+            action: 'drop'
+          - sourceLabels: ['namespace']
+            regex: 'example'
+            action: 'keep'
         basicAuth:
           username:
             key: username
