@@ -2,3 +2,6 @@ project_id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 
 # Unset, the cluster runs the latest Kubernetes version SKE supports.
 # kubernetes_version_min = "1.36"
+
+# Unset, the provider reads STACKIT_SERVICE_ACCOUNT_KEY_PATH or the credentials file.
+# stackit_service_account_key_path = "/path/to/stackit-sa.json"
