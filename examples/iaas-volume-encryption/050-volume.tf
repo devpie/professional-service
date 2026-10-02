@@ -20,7 +20,7 @@ resource "stackit_volume" "encrypted" {
   size              = 64
   source = {
     type = "image"
-    id   = "7b8f0f89-cffd-4838-8530-8e7266d08afe" # W2k25
+    id   = var.image_id
   }
   labels = {
     kek_key_id      = stackit_kms_key.volume-key.key_id

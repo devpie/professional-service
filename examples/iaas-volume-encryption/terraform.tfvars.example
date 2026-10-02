@@ -5,6 +5,10 @@ STACKIT_PROJECT_ID = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 # Unset falls back to STACKIT_SERVICE_ACCOUNT_KEY_PATH, then to the credentials file.
 # stackit_service_account_key_path = "./keys/stackit-sa.json"
 
+# Windows Server image of the boot volume, for example Windows Server 2025.
+# List the images with: stackit image list
+image_id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+
 # Existing network and security group of the project.
 # List them with: stackit network list / stackit security-group list
 network_id        = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"

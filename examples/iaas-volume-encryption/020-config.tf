@@ -43,6 +43,11 @@ variable "stackit_service_account_key_path" {
   default     = null
 }
 
+variable "image_id" {
+  type        = string
+  description = "ID of the Windows Server image the encrypted boot volume is created from. cloud-init.yaml creates a Windows Administrator account, so the image must be a Windows image. List the images with: stackit image list"
+}
+
 variable "network_id" {
   type        = string
   description = "ID of the existing network the server joins"
