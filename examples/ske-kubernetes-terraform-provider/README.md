@@ -21,3 +21,5 @@ terraform apply
 ```
 
 `terraform.tfvars` needs `project_id`. Without `kubernetes_version_min`, the provider creates the cluster on the latest Kubernetes version SKE supports.
+
+The kubeconfig in state expires after one hour. `refresh = true` in `030-ske-cluster.tf` makes the STACKIT provider fetch a new kubeconfig during the refresh step of `terraform plan`, `terraform apply` and `terraform destroy` once less than 30 minutes of its lifetime remain. A run with `-refresh=false` skips that step and uses the kubeconfig from state as it is.

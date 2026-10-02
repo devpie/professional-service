@@ -35,4 +35,10 @@ resource "stackit_ske_kubeconfig" "example" {
   project_id   = var.project_id
   cluster_name = stackit_ske_cluster.example.name
   expiration   = 3600
+
+  # The kubernetes provider reads this kubeconfig from state in every run.
+  # With refresh, the refresh step of plan, apply and destroy fetches a new
+  # kubeconfig once less than refresh_before seconds of its lifetime remain.
+  refresh        = true
+  refresh_before = 1800
 }
