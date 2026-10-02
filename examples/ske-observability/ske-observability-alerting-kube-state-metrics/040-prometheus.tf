@@ -38,7 +38,7 @@ resource "helm_release" "prometheus_operator" {
   namespace  = kubernetes_namespace_v1.monitoring.metadata[0].name
 
   values = [
-    templatefile("prom-values.tftpl", {
+    templatefile("${path.module}/prom-values.tftpl", {
       metrics_push_url = stackit_observability_instance.example.metrics_push_url
       secret_name      = kubernetes_secret_v1.argus_prometheus_authorization.metadata[0].name
     })
