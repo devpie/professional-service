@@ -12,16 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-resource "kubernetes_namespace" "monitoring" {
+resource "kubernetes_namespace_v1" "monitoring" {
   metadata {
     name = "monitoring"
   }
 }
 
-resource "kubernetes_secret" "argus_prometheus_authorization" {
+resource "kubernetes_secret_v1" "argus_prometheus_authorization" {
   metadata {
     name      = "argus-prometheus-credentials"
-    namespace = kubernetes_namespace.monitoring.metadata[0].name
+    namespace = kubernetes_namespace_v1.monitoring.metadata[0].name
   }
 
   data = {
@@ -35,12 +35,12 @@ resource "helm_release" "prometheus_operator" {
   repository = "https://prometheus-community.github.io/helm-charts"
   chart      = "kube-prometheus-stack"
   version    = "60.1.0"
-  namespace  = kubernetes_namespace.monitoring.metadata[0].name
+  namespace  = kubernetes_namespace_v1.monitoring.metadata[0].name
 
   values = [
     templatefile("prom-values.tftpl", {
       metrics_push_url = stackit_observability_instance.example.metrics_push_url
-      secret_name      = kubernetes_secret.argus_prometheus_authorization.metadata[0].name
+      secret_name      = kubernetes_secret_v1.argus_prometheus_authorization.metadata[0].name
     })
   ]
 }

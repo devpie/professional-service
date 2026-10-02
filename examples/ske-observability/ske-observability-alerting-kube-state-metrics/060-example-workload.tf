@@ -12,16 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-resource "kubernetes_namespace" "example" {
+resource "kubernetes_namespace_v1" "example" {
   metadata {
     name = "example"
   }
 }
 
-resource "kubernetes_pod" "example" {
+resource "kubernetes_pod_v1" "example" {
   metadata {
     name      = "nginx"
-    namespace = kubernetes_namespace.example.metadata[0].name
+    namespace = kubernetes_namespace_v1.example.metadata[0].name
     labels = {
       app = "nginx"
     }
