@@ -30,12 +30,13 @@ Terraform creates the SKE cluster, the STACKIT service account, and configures t
 
 ```bash
 stackit ske kubeconfig create <cluster-name> --project-id <project-id> -y
+kubectl config use-context <cluster-name>
 
-# Watch the demo job — it calls the STACKIT SKE API using the injected identity
+# Watch the demo job — it lists the public IP ranges through the STACKIT IaaS API using the injected identity
 kubectl logs job/workload-identity-demo -n workload-identity-demo
 ```
 
-A successful run prints the available SKE Kubernetes versions, proving the token exchange worked.
+A successful run logs `Authentication successful, API call succeeded`. That line shows that the token exchange worked. The call needs no role on the STACKIT service account.
 
 ## Assigning permissions
 
