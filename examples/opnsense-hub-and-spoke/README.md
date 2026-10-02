@@ -113,7 +113,7 @@ hub-and-spoke-vpn/
 
 ## Prerequisites
 
-- [Terraform](https://developer.hashicorp.com/terraform/install) >= 1.5
+- [Terraform](https://developer.hashicorp.com/terraform/install) >= 1.6.3. The S3 backend setting `skip_s3_checksum` needs this version.
 - A STACKIT account with an organization, a folder, and sufficient IAM permissions
 - A STACKIT service account with a JSON key file
 - A STACKIT Object Storage bucket for Terraform remote state
