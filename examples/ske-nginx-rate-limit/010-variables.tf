@@ -13,13 +13,14 @@
 # limitations under the License.
 
 variable "stackit_project_id" {
-  type    = string
-  default = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+  type        = string
+  description = "STACKIT project that holds the cluster, the DNS zone and the public IP"
 }
 
 variable "stackit_region" {
-  type    = string
-  default = "eu01"
+  type        = string
+  description = "STACKIT region"
+  default     = "eu01"
 }
 
 variable "stackit_service_account_key_path" {
