@@ -34,4 +34,9 @@ resource "stackit_volume" "encrypted" {
     kek_keyring_id  = stackit_kms_keyring.volume.keyring_id
     service_account = stackit_service_account.iaas-kms.email
   }
+
+  # The service account needs its KMS role before the volume uses the key.
+  depends_on = [
+    stackit_authorization_project_role_assignment.role-assign,
+  ]
 }
