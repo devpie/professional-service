@@ -13,6 +13,16 @@ To resolve the circular dependency of provisioning a state backend using Terrafo
 
 **⚠️ Security Notice:** The PostgreSQL Flex instance in `00-bootstrap/` is configured with an open ACL (`0.0.0.0/0`) for development convenience. Before deploying to production, restrict the ACL to your specific egress IP ranges to prevent the database from being accessible via the public internet.
 
+> [!WARNING]
+> Four places hold the password of `tf_state_user` in plain text:
+>
+> - the local state of `00-bootstrap/`
+> - the output `pg_connection_uri`, even though `040-output.tf` marks it `sensitive`
+> - `01-example-project/backend.conf`
+> - `01-example-project/.terraform/terraform.tfstate` after `terraform init -backend-config`, because Terraform stores the backend configuration there
+>
+> Anyone who can read one of them can read the password. The `.gitignore` of this repository covers `terraform.tfstate`, `terraform.tfstate.backup`, `backend.conf` and the `.terraform/` directory. This setup is only an example and should not be used this way in production.
+
 ## Prerequisites
 
 - Terraform.

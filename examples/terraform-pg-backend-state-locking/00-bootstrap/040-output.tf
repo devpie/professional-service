@@ -20,6 +20,8 @@ locals {
   pg_database = stackit_postgresflex_database.this.name
 }
 
+# The URI contains the password of tf_state_user in plain text, and so does the
+# state. This setup is only an example and should not be used in production.
 output "pg_connection_uri" {
   description = "PostgreSQL Flex User Connection String"
   value       = "postgres://${local.pg_username}:${local.pg_password}@${local.pg_host}:${local.pg_port}/${local.pg_database}?sslmode=require"
