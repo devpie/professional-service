@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-resource "kubernetes_namespace" "example" {
+resource "kubernetes_namespace_v1" "example" {
   metadata {
     name = "stackit-demo-namespace"
   }
