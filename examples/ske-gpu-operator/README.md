@@ -8,6 +8,16 @@ This example demonstrates how to deploy a SKE cluster with an NVIDIA H100 node p
 
 **Note:** Currently, GPU-enabled node pools on SKE are only supported when using Ubuntu as the node operating system.
 
+## Usage
+
+```bash
+cp terraform.tfvars.example terraform.tfvars
+terraform init
+terraform apply
+```
+
+`terraform.tfvars` needs `project_id`.
+
 ## Kubernetes version
 
 The variable `kubernetes_version_min` keeps the cluster on Kubernetes 1.35.

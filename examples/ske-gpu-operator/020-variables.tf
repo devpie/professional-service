@@ -13,7 +13,8 @@
 # limitations under the License.
 
 variable "project_id" {
-  default = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+  type        = string
+  description = "STACKIT project that holds the SKE cluster"
 }
 
 variable "stackit_service_account_key_path" {
