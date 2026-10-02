@@ -247,11 +247,11 @@ Two servers showing Windows with different compute profiles:
 
 A single generic module used by all spokes. Select the OS by passing the appropriate `image_id`. Supported operating systems include:
 
-- RHEL 9 _(default)_
+- RHEL 9
 - Windows Server 2022
 - Debian 12
 
-**Image UUIDs:** Image IDs change between releases and vary by region. Retrieve the current image UUIDs from STACKIT before deploying. Set the appropriate `image_id` value in your Terraform configuration.
+**Image UUIDs:** Image IDs change between releases and vary by region. Retrieve the current image UUIDs from STACKIT before deploying. Set `linux_image_id` in `002-spoke-project` and `windows_image_id` in `003-spoke-project`.
 
 ---
 
@@ -264,6 +264,8 @@ A single generic module used by all spokes. Select the OS by passing the appropr
 | `stackit_network_area_id` | spoke `000-variables.tf` / tfvars       | Output of `001-hub-project`                             |
 | `org_admin`               | all `000-variables.tf` / tfvars         | Project owner email                                     |
 | `mgmt_ip_range`           | `001-hub-project` tfvars                | CIDR allowed to reach the firewall management interface |
+| `linux_image_id`          | `002-spoke-project` tfvars              | Linux image UUID, see Compute > Images in the portal    |
+| `windows_image_id`        | `003-spoke-project` tfvars              | Windows image UUID, see Compute > Images in the portal  |
 | Backend credentials       | `backend.conf` per project              | Object Storage bucket + S3 keys                         |
 | Service account key       | `keys/service-account.json` per project | Downloaded from STACKIT portal                          |
 | Cloud-init password       | `cloud-init/*.yml`                      | Replace placeholder hash with a real one                |

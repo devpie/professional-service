@@ -12,10 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-locals {
-  windows_image_id = "c3304694-a03f-47c7-8d4c-348eecc7d212"
-}
-
 module "windows_server_a" {
   source = "../modules/server"
 
@@ -23,7 +19,7 @@ module "windows_server_a" {
   network_id             = stackit_network.spoke_network.network_id
   availability_zone      = var.default_zone
   name                   = "windows-server-a"
-  image_id               = local.windows_image_id
+  image_id               = var.windows_image_id
   machine_type           = "m2i.8"
   disk_size              = 100
   disk_performance_class = "storage_premium_perf2"
@@ -37,7 +33,7 @@ module "windows_server_b" {
   network_id             = stackit_network.spoke_network.network_id
   availability_zone      = var.default_zone
   name                   = "windows-server-b"
-  image_id               = local.windows_image_id
+  image_id               = var.windows_image_id
   machine_type           = "c2i.4"
   disk_size              = 100
   disk_performance_class = "storage_premium_perf1"

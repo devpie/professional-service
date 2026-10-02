@@ -39,14 +39,8 @@ variable "machine_type" {
 }
 
 variable "image_id" {
-  description = <<-EOT
-    Boot image UUID.
-    Defaults to RHEL 9 (eu01) — verify the current ID in the STACKIT portal under Compute > Images.
-    For Windows Server 2022 (eu01) use: c3304694-a03f-47c7-8d4c-348eecc7d212
-    For Debian 12 (eu01) use: b80c8bf2-3f0b-4049-9473-1487141a8e2a
-  EOT
+  description = "Boot image UUID. Look up the current ID in the STACKIT portal under Compute > Images."
   type        = string
-  default     = "857bf127-1a68-4f34-bda6-4772e8d04a08"
 }
 
 variable "disk_size" {

@@ -62,6 +62,11 @@ variable "spoke_subnet" {
   default     = "10.28.10.0/24"
 }
 
+variable "linux_image_id" {
+  description = "UUID of the Linux image (RHEL 9) that both servers boot from. Image IDs change between releases and vary by region. Look up the current ID in the STACKIT portal under Compute > Images."
+  type        = string
+}
+
 variable "hub_firewall_lan_ip" {
   description = "LAN IP of the active OPNsense node. Used as the default route next-hop for all spoke traffic. Run `terraform output firewall_lan_ip` in 001-hub-project."
   type        = string

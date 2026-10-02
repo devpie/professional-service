@@ -17,6 +17,7 @@ module "server_a" {
 
   project_id             = stackit_resourcemanager_project.spoke.project_id
   network_id             = stackit_network.spoke_network.network_id
+  image_id               = var.linux_image_id
   availability_zone      = var.default_zone
   name                   = "server-a"
   machine_type           = "c2i.2"
@@ -30,6 +31,7 @@ module "server_b" {
 
   project_id             = stackit_resourcemanager_project.spoke.project_id
   network_id             = stackit_network.spoke_network.network_id
+  image_id               = var.linux_image_id
   availability_zone      = var.default_zone
   name                   = "server-b"
   machine_type           = "m2a.8d"

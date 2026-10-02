@@ -54,6 +54,13 @@ default_zone   = "eu01-1"
 # 003-spoke-project default: 10.28.20.0/24
 # spoke_subnet = "10.28.10.0/24"
 
+# Boot image of both servers in the spoke. Image IDs change between releases and
+# vary by region. Look up the current ID in the STACKIT portal under Compute > Images.
+# 002-spoke-project: a Linux image (RHEL 9).
+# linux_image_id = "<image-uuid>"
+# 003-spoke-project: a Windows Server image.
+# windows_image_id = "<image-uuid>"
+
 # LAN IP of the OPNsense firewall — used as the default route next-hop for spoke traffic.
 # Run `terraform output firewall_lan_ip` in 001-hub-project.
 # hub_firewall_lan_ip = "10.28.1.100"

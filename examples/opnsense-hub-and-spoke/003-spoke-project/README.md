@@ -45,6 +45,7 @@ See the [top-level README](../README.md) for the full architecture and repositor
 | `stackit_network_area_id` | Output of `001-hub-project` (`terraform output network_area_id`)     |
 | `org_admin`               | Email of the STACKIT user set as project owner                       |
 | `spoke_subnet`            | This spoke's network prefix (default `10.28.20.0/24`)                |
+| `windows_image_id`        | UUID of the Windows Server image that both servers boot from         |
 | `hub_firewall_lan_ip`     | OPNsense LAN IP, output of `001-hub-project` (default `10.28.1.100`) |
 
 See `000-variables.tf` for the full list, defaults, and descriptions.
