@@ -83,4 +83,7 @@ resource "kubernetes_job_v1" "demo" {
 
     backoff_limit = 4
   }
+
+  # The token exchange fails until the federated identity provider exists.
+  depends_on = [stackit_service_account_federated_identity_provider.this]
 }
