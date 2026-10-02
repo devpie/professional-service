@@ -64,7 +64,7 @@ variable "opnsense_machine_type" {
 }
 
 variable "opnsense_image_path" {
-  description = "Path to the OPNsense qcow2 image on the machine that runs Terraform. The file must exist before terraform plan; README.md shows the download command."
+  description = "Path to the OPNsense qcow2 image on the machine that runs Terraform. Every terraform plan and apply checks that the file exists; README.md shows the download command. Changing the path replaces the image, the boot volume and the OPNsense server."
   type        = string
   default     = "opnsense.qcow2"
 }

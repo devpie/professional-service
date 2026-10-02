@@ -44,7 +44,8 @@ default_zone   = "eu01-1"
 # Leave empty (or remove) to create no management access rules.
 # mgmt_ip_range = "<x.x.x.x/x>"
 
-# Path to the downloaded OPNsense qcow2 image. The file must exist before terraform plan.
+# Path to the downloaded OPNsense qcow2 image. Every terraform plan and apply checks that
+# the file exists. Changing the path replaces the image, the boot volume and the server.
 # opnsense_image_path = "opnsense.qcow2"
 
 # --- Spoke: networking (002 and 003 spoke projects) --------------------------

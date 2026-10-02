@@ -73,7 +73,7 @@ cp backend.conf.example backend.conf   # fill in bucket + S3 credentials
 cp ../terraform.tfvars.example terraform.tfvars  # fill in variable values
 # place your service account key at keys/service-account.json
 
-# the provider checks during plan that the image file exists
+# every plan and apply checks that the image file exists, so keep it in place
 curl -fL -o opnsense.qcow2 https://opnsense.object.storage.eu01.onstackit.cloud/opnsense-26.1-amd64-21-05-2026.qcow2
 
 terraform init -backend-config=backend.conf

@@ -219,7 +219,7 @@ The WAN interface boots first (`vtnet0`); LAN and MGMT are attached sequentially
 curl -fL -o opnsense.qcow2 https://opnsense.object.storage.eu01.onstackit.cloud/opnsense-26.1-amd64-21-05-2026.qcow2
 ```
 
-The STACKIT provider checks during `terraform plan` that the file in `opnsense_image_path` (default `opnsense.qcow2`) exists. `terraform apply` uploads the file to STACKIT as a custom image.
+The STACKIT provider checks during every `terraform plan` and `terraform apply` that the file in `opnsense_image_path` (default `opnsense.qcow2`) exists. Keep the file in place after the first deployment. `terraform apply` uploads the file to STACKIT as a custom image. Changing `opnsense_image_path` replaces the custom image, the boot volume and the OPNsense server.
 
 ---
 
