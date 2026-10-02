@@ -3,7 +3,7 @@
 
 provider "registry.terraform.io/goauthentik/authentik" {
   version     = "2026.2.0"
-  constraints = "2026.2.0"
+  constraints = ">= 2026.2.0"
   hashes = [
     "h1:On3/Zzv3W72aGsJ4AhW/tnpi4hvq9cxwgf7tF6Tg+a4=",
     "h1:pum2uBRNDUjPeP9aYszm+6GU+K7tZIpbbLrsN39l8iw=",
