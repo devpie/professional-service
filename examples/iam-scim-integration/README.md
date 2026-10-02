@@ -67,6 +67,8 @@ The first deployment runs in four steps. Terraform needs a working connection to
 
 Later changes need only `terraform apply`.
 
+STACKIT issues the SCIM credentials only after the support ticket described below. The ticket needs the outputs `authentik_oidc_issuer` and `authentik_oidc_client_id` and the client secret from `terraform output -raw authentik_oidc_client_secret`. The client ID and the client secret exist only after step 4. The first deployment therefore runs with a placeholder in `authentik_scim_long_lived_token`. Once STACKIT has issued the SCIM credentials, set the real token in `terraform.tfvars` and run `terraform apply`. The `authentik` provider then updates `authentik_provider_scim.stackit` in place.
+
 ---
 
 ## ⚠️ STACKIT Integration Process
