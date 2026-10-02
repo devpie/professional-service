@@ -26,7 +26,6 @@ controller:
     use-proxy-protocol: "true"
     allow-snippet-annotations: "true"
     compute-full-forwarded-for: "true"
-    use-proxy-protocol: "true"
     use-forwarded-headers: "true"
     enable-real-ip: "true"
     forwarded-for-header: "proxy_protocol"
