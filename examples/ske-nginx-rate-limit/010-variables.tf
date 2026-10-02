@@ -34,3 +34,15 @@ variable "kubernetes_version_min" {
   description = "Minimum Kubernetes version of the SKE cluster. Unset creates the cluster on the latest version SKE supports. Cluster creation fails once SKE no longer offers the pinned version."
   default     = null
 }
+
+variable "dns_zone_suffix" {
+  type        = string
+  description = "Parent domain of the DNS zone. The zone takes a random label below it."
+  default     = "runs.onstackit.cloud"
+}
+
+variable "dns_contact_email" {
+  type        = string
+  description = "Contact email of the DNS zone"
+  default     = "hostmaster@stackit.cloud"
+}

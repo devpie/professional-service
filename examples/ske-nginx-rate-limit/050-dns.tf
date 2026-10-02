@@ -15,10 +15,10 @@
 resource "stackit_dns_zone" "svc_zone" {
   project_id    = var.stackit_project_id
   name          = random_string.random.result
-  dns_name      = "${random_string.random.result}.runs.onstackit.cloud"
+  dns_name      = "${random_string.random.result}.${var.dns_zone_suffix}"
   type          = "primary"
   default_ttl   = 60
-  contact_email = "hostmaster@stackit.cloud"
+  contact_email = var.dns_contact_email
 }
 
 resource "stackit_dns_record_set" "svc" {
