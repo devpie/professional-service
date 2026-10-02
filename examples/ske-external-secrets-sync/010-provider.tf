@@ -42,21 +42,26 @@ terraform {
 provider "stackit" {
   default_region           = var.stackit_region
   service_account_key_path = var.stackit_service_account_key_path
+
+  # The ephemeral kubeconfig in 030-ske.tf belongs to the ske experiment.
+  experiments = ["ske"]
 }
 
+# Kubernetes and Helm are fed from an ephemeral kubeconfig, so no admin
+# credential lands in the state file.
 provider "kubernetes" {
-  host                   = yamldecode(stackit_ske_kubeconfig.ske_kubeconfig_01.kube_config).clusters.0.cluster.server
-  client_certificate     = base64decode(yamldecode(stackit_ske_kubeconfig.ske_kubeconfig_01.kube_config).users.0.user.client-certificate-data)
-  client_key             = base64decode(yamldecode(stackit_ske_kubeconfig.ske_kubeconfig_01.kube_config).users.0.user.client-key-data)
-  cluster_ca_certificate = base64decode(yamldecode(stackit_ske_kubeconfig.ske_kubeconfig_01.kube_config).clusters.0.cluster.certificate-authority-data)
+  host                   = yamldecode(ephemeral.stackit_ske_kubeconfig.ske_kubeconfig_01.kube_config).clusters.0.cluster.server
+  client_certificate     = base64decode(yamldecode(ephemeral.stackit_ske_kubeconfig.ske_kubeconfig_01.kube_config).users.0.user.client-certificate-data)
+  client_key             = base64decode(yamldecode(ephemeral.stackit_ske_kubeconfig.ske_kubeconfig_01.kube_config).users.0.user.client-key-data)
+  cluster_ca_certificate = base64decode(yamldecode(ephemeral.stackit_ske_kubeconfig.ske_kubeconfig_01.kube_config).clusters.0.cluster.certificate-authority-data)
 }
 
 provider "helm" {
   kubernetes = {
-    host                   = yamldecode(stackit_ske_kubeconfig.ske_kubeconfig_01.kube_config).clusters.0.cluster.server
-    client_certificate     = base64decode(yamldecode(stackit_ske_kubeconfig.ske_kubeconfig_01.kube_config).users.0.user.client-certificate-data)
-    client_key             = base64decode(yamldecode(stackit_ske_kubeconfig.ske_kubeconfig_01.kube_config).users.0.user.client-key-data)
-    cluster_ca_certificate = base64decode(yamldecode(stackit_ske_kubeconfig.ske_kubeconfig_01.kube_config).clusters.0.cluster.certificate-authority-data)
+    host                   = yamldecode(ephemeral.stackit_ske_kubeconfig.ske_kubeconfig_01.kube_config).clusters.0.cluster.server
+    client_certificate     = base64decode(yamldecode(ephemeral.stackit_ske_kubeconfig.ske_kubeconfig_01.kube_config).users.0.user.client-certificate-data)
+    client_key             = base64decode(yamldecode(ephemeral.stackit_ske_kubeconfig.ske_kubeconfig_01.kube_config).users.0.user.client-key-data)
+    cluster_ca_certificate = base64decode(yamldecode(ephemeral.stackit_ske_kubeconfig.ske_kubeconfig_01.kube_config).clusters.0.cluster.certificate-authority-data)
   }
 }
 

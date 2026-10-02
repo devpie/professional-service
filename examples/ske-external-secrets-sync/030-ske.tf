@@ -32,10 +32,8 @@ resource "stackit_ske_cluster" "ske_cluster_01" {
   ]
 }
 
-resource "stackit_ske_kubeconfig" "ske_kubeconfig_01" {
+# The cluster ID condition defers the kubeconfig request until the cluster exists.
+ephemeral "stackit_ske_kubeconfig" "ske_kubeconfig_01" {
   project_id   = var.stackit_project_id
-  cluster_name = stackit_ske_cluster.ske_cluster_01.name
-  refresh      = true
-
-  depends_on = [stackit_ske_cluster.ske_cluster_01]
+  cluster_name = stackit_ske_cluster.ske_cluster_01.id != "" ? stackit_ske_cluster.ske_cluster_01.name : ""
 }
