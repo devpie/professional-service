@@ -53,5 +53,6 @@ resource "stackit_postgresflex_database" "this" {
   project_id  = stackit_resourcemanager_project.this.project_id
   instance_id = stackit_postgresflex_instance.this.instance_id
   owner       = stackit_postgresflex_user.db_owner.username
-  name        = "tf-states"
+  # The v3 API accepts lowercase letters, digits and underscores only.
+  name = "terraform_state"
 }
