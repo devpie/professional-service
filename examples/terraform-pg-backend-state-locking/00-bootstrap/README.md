@@ -1,22 +1,28 @@
 # Phase 0: Bootstrap
 
-This module provisions the STACKIT PostgreSQL Flex instance, the `terraform_state` database, and the dedicated `tf_state_user`. Its state is kept locally (or in an independent CI/CD backend) to prevent dependency conflicts.
+This module provisions a STACKIT project and, in that project, the STACKIT PostgreSQL Flex instance, the `terraform_state` database, and the dedicated `tf_state_user`. Its state is kept locally (or in an independent CI/CD backend) to prevent dependency conflicts.
 
 ## Implementation Steps
 
-1. Initialize Terraform with the default local backend:
+1. Copy `terraform.tfvars.example` to `terraform.tfvars` and set `stackit_parent_container_id` and `stackit_org_admin`:
+
+   ```sh
+   cp terraform.tfvars.example terraform.tfvars
+   ```
+
+2. Initialize Terraform with the default local backend:
 
    ```sh
    terraform init
    ```
 
-2. Provision the PostgreSQL Flex resources:
+3. Provision the project and the PostgreSQL Flex resources:
 
    ```sh
    terraform apply
    ```
 
-3. Extract the generated PostgreSQL connection string from the Terraform outputs. This URI is required to configure the remote backend in the next phase.
+4. Extract the generated PostgreSQL connection string from the Terraform outputs. This URI is required to configure the remote backend in the next phase.
 
    ```sh
    terraform output -raw pg_connection_uri
