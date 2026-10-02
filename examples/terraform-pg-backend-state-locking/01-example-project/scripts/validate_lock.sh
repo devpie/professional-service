@@ -49,7 +49,7 @@ if grep -q "$LOCK_ERROR" "$APPLY_LOG" && [ "$PLAN_EXIT_CODE" -eq 0 ]; then
   exit 0
 fi
 
-echo "[ERROR] Neither command was rejected with '$LOCK_ERROR' (plan exit code $PLAN_EXIT_CODE, apply exit code $APPLY_EXIT_CODE)."
+echo "[ERROR] Expected one command to be rejected with '$LOCK_ERROR' and the other one to succeed (plan exit code $PLAN_EXIT_CODE, apply exit code $APPLY_EXIT_CODE)."
 echo "[ERROR] Output of 'terraform apply':"
 cat "$APPLY_LOG"
 exit 1
