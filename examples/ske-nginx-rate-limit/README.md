@@ -55,14 +55,14 @@ spec:
 ```
 
 **Note:**
-Make sure the application behind the Load Balancer is compatible with Proxy Protocol v2. If not, connections might fail or behave unexpectedly.
+The application behind the Load Balancer must support Proxy Protocol v2.
 
 ---
 
 ## 2. Enable Proxy Protocol on ingress-nginx
 
 Your ingress controller must also be configured to accept Proxy Protocol headers.
-This may require special Helm values when deploying ingress-nginx.
+The ingress-nginx Helm chart passes this setting from its values to the controller ConfigMap.
 
 - See how this is done in [070-helm.tf](070-helm.tf) for this repository.
 - In general, for ingress-nginx Helm charts, you will need:
@@ -100,7 +100,7 @@ kubectl logs -n nginx -l app.kubernetes.io/component=controller --tail 20
 ## Important
 
 - Proxy Protocol must be enabled on **both** the Load Balancer service **and** the ingress/nginx controller.
-- If either is not configured, the original client IP will not be visible within your pods, and may result in errors.
+- If either side lacks it, the pods do not see the original client IP.
 - Always review the official documentation for your platform and ingress-nginx version.
 
 ---
