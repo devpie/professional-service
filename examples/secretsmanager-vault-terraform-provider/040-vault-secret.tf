@@ -20,8 +20,9 @@ resource "vault_kv_secret_v2" "example" {
 
   data_json = jsonencode(
     {
-      grafana_password = stackit_observability_instance.example.grafana_initial_admin_password,
-      other_secret     = "your-other-secret-value"
+      observability_username = stackit_observability_credential.example.username,
+      observability_password = stackit_observability_credential.example.password,
+      other_secret           = "your-other-secret-value"
     }
   )
 }

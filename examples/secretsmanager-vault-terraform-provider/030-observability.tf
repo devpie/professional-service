@@ -13,7 +13,14 @@
 # limitations under the License.
 
 resource "stackit_observability_instance" "example" {
-  project_id = var.stackit_project_id
-  name       = "example-instance"
-  plan_name  = "Observability-Monitoring-Medium-EU01"
+  project_id            = var.stackit_project_id
+  name                  = "example-instance"
+  plan_name             = "Observability-Monitoring-Medium-EU01"
+  grafana_admin_enabled = false
+}
+
+resource "stackit_observability_credential" "example" {
+  project_id  = var.stackit_project_id
+  instance_id = stackit_observability_instance.example.instance_id
+  description = "Example credential stored in Secrets Manager"
 }
