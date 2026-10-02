@@ -100,6 +100,8 @@ Fetch only the files relevant to the task. A typical example contains
   An internal-only STACKIT Application Load Balancer: no public address, load balancer and backends in separate networks, the target security group of the load balancer assigned by the configuration instead of by the service, and TLS from the client to the load balancer and again from the load balancer to the backends, verified against a private CA
 - **`alb-tls-examples`** `[alb, tls, certificate, load-balancer, lets-encrypt, iaas, ske]`  
   A collection of STACKIT Application Load Balancer (ALB) showcases with different TLS strategies — from self-signed to Let's Encrypt, from a single VM to Kubernetes
+- **`alb-waf-rule-tuning`** `[iaas, alb, waf, load-balancer, layer7, networking, sna, tls, owasp-crs, ha, cross-az]`  
+  A STACKIT Application Load Balancer with a public IP and a Web Application Firewall in front of two VMs, inside a STACKIT Network Area. The example disables individual rules of the managed rule set, switches them to log-only and enables them again from Terraform
 - **`cdn-s3-static-website`** `[cdn, s3, object-storage, static-website, waf]`  
   A reference implementation showing how to deploy a static website using [STACKIT CDN](https://stackit.com/en/products/network/stackit-cdn) with [STACKIT Object Storage](http://stackit.com/en/products/storage/stackit-object-storage) as the origin
 - **`dbaas-otel-collect-metrics`** `[dbaas, postgresql, otel, observability, metrics, monitoring]`  

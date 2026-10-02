@@ -1,0 +1,21 @@
+# Copy this file to terraform.tfvars and fill in your values.
+
+# STACKIT organization the network area is created in.
+stackit_org_id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+
+# Existing folder the project is created under, or the organization ID to
+# create it directly under the organization. Terraform does not create it.
+stackit_parent_container_id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+
+# An existing STACKIT user. A non-existent address fails with
+# 409 Conflict "subject is not found".
+stackit_admin_email = "firstname.lastname@example.com"
+
+stackit_service_account_key_path = "/path/to/stackit-sa.json"
+
+# Optional: mode per rule of the managed rule set. Rules that are not listed
+# are in MODE_ENABLED.
+# managed_rule_modes = {
+#   "913100" = "MODE_DISABLED"
+#   "942100" = "MODE_LOG_ONLY"
+# }
