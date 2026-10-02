@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-resource "kubernetes_namespace" "dev" {
+resource "kubernetes_namespace_v1" "dev" {
   metadata {
     name = "dev"
   }
@@ -24,7 +24,7 @@ resource "kubernetes_manifest" "random_secret_sync" {
     kind       = "ExternalSecret"
     metadata = {
       name      = "random-secret-sync"
-      namespace = kubernetes_namespace.dev.metadata.0.name
+      namespace = kubernetes_namespace_v1.dev.metadata.0.name
     }
     spec = {
       refreshInterval = "30s"

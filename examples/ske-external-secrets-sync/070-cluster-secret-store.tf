@@ -12,11 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-resource "kubernetes_secret" "vault_password" {
+resource "kubernetes_secret_v1" "vault_password" {
   depends_on = [helm_release.external_secrets_operator_chart]
   metadata {
     name      = "stackit-secretsmanager-user-password"
-    namespace = kubernetes_namespace.external_secrets.metadata.0.name
+    namespace = kubernetes_namespace_v1.external_secrets.metadata.0.name
   }
   data = {
     username = stackit_secretsmanager_user.user.username
@@ -42,8 +42,8 @@ resource "kubernetes_manifest" "stackit_secrets_store" {
               path     = "userpass"
               username = stackit_secretsmanager_user.user.username
               secretRef = {
-                namespace = kubernetes_secret.vault_password.metadata.0.namespace
-                name      = kubernetes_secret.vault_password.metadata.0.name
+                namespace = kubernetes_secret_v1.vault_password.metadata.0.namespace
+                name      = kubernetes_secret_v1.vault_password.metadata.0.name
                 key       = "password"
               }
             }

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-resource "kubernetes_namespace" "external_secrets" {
+resource "kubernetes_namespace_v1" "external_secrets" {
   metadata {
     name = "external-secrets"
   }
@@ -20,7 +20,7 @@ resource "kubernetes_namespace" "external_secrets" {
 
 resource "helm_release" "external_secrets_operator_chart" {
   name       = "external-secrets-operator"
-  namespace  = kubernetes_namespace.external_secrets.metadata.0.name
+  namespace  = kubernetes_namespace_v1.external_secrets.metadata.0.name
   repository = "https://charts.external-secrets.io"
   chart      = "external-secrets"
   version    = "0.19.2"
