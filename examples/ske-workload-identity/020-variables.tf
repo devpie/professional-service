@@ -24,9 +24,9 @@ variable "stackit_region" {
 }
 
 variable "stackit_service_account_key_path" {
-  description = "Path to the STACKIT service account key JSON file."
+  description = "Path to the service account key file. Unset falls back to the STACKIT_SERVICE_ACCOUNT_KEY_PATH environment variable, then to that entry in the credentials file ($HOME/.stackit/credentials.json, or STACKIT_CREDENTIALS_PATH)."
   type        = string
-  default     = "./keys/stackit-sa.json"
+  default     = null
 }
 
 variable "cluster_name" {

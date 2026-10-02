@@ -22,7 +22,7 @@ terraform init
 terraform apply
 ```
 
-`terraform.tfvars` needs `stackit_project_id`. Without `kubernetes_version_min`, the provider picks the latest Kubernetes version that SKE supports.
+`terraform.tfvars` needs `stackit_project_id`. Without `kubernetes_version_min`, the provider picks the latest Kubernetes version that SKE supports. Without `stackit_service_account_key_path`, the provider falls back to `STACKIT_SERVICE_ACCOUNT_KEY_PATH`, then to its credentials file `$HOME/.stackit/credentials.json` ([provider authentication](https://registry.terraform.io/providers/stackitcloud/stackit/latest/docs)).
 
 Terraform creates the SKE cluster, the STACKIT service account, and configures the OIDC federation trust automatically. No manual portal steps required.
 
