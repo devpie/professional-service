@@ -13,8 +13,8 @@
 # Organization or folder the project is created in.
 stackit_parent_container_id = "<your-organization-or-folder-id>"
 
-## Name of the bootstrapping project
-stackit_project_name = "00-bootstrap"
+# Display name of the project. Optional: defaults to "00-bootstrap".
+# stackit_project_name = "00-bootstrap"
 
 # Email address of the STACKIT user set as project owner.
 stackit_org_admin = "<your-admin@mail.com>"
@@ -27,4 +27,6 @@ stackit_org_admin = "<your-admin@mail.com>"
 # stackit_service_account_key_path = "./keys/service-account.json"
 
 # --- Region ------------------------------------------------------------------
-stackit_region = "eu01"
+
+# STACKIT region. Optional: defaults to "eu01".
+# stackit_region = "eu01"

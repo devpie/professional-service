@@ -26,6 +26,7 @@ variable "stackit_parent_container_id" {
 variable "stackit_project_name" {
   description = "Display name of the project this stage creates."
   type        = string
+  default     = "01-example-project"
 }
 
 variable "stackit_org_admin" {
@@ -36,4 +37,5 @@ variable "stackit_org_admin" {
 variable "stackit_region" {
   description = "STACKIT region (e.g. eu01)."
   type        = string
+  default     = "eu01"
 }
