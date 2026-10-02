@@ -21,13 +21,13 @@ To resolve the circular dependency of provisioning a state backend using Terrafo
 > - `01-example-project/backend.conf`
 > - `01-example-project/.terraform/terraform.tfstate` after `terraform init -backend-config`, because Terraform stores the backend configuration there
 >
-> Anyone who can read one of them can read the password. The `.gitignore` of this repository covers `terraform.tfstate`, `terraform.tfstate.backup`, `backend.conf` and the `.terraform/` directory. This setup is only an example and should not be used this way in production.
+> Anyone who can read one of them can read the password. The `.gitignore` of this repository covers `terraform.tfstate`, `terraform.tfstate.backup`, `backend.conf` and the `.terraform/` directory. This setup is an example. Do not use it in production.
 
 ## Prerequisites
 
 - Terraform.
 - STACKIT provider 0.117.0 or later.
-- A service account key for Terraform, see `stackit_service_account_key_path` in `000-variables.tf` of both stages. The service account holds a role on the parent container that includes `resource-manager.project.create` and applies to the new projects, for example `owner`. The two stages create one project each.
+- A service account key for Terraform, see `stackit_service_account_key_path` in `000-variables.tf` of both stages. The service account needs a role on the parent container that includes `resource-manager.project.create` and applies to the new projects, for example `owner`. The two stages create one project each.
 - The ID of the parent container. `stackit_parent_container_id` takes an organization or a folder.
 
 ## Usage
