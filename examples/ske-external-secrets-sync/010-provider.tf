@@ -30,6 +30,10 @@ terraform {
       source  = "hashicorp/helm"
       version = "2.17.0"
     }
+    vault = {
+      source  = "hashicorp/vault"
+      version = ">= 5.8.0"
+    }
   }
 }
 

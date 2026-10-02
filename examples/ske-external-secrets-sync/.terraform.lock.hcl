@@ -65,7 +65,8 @@ provider "registry.terraform.io/hashicorp/random" {
 }
 
 provider "registry.terraform.io/hashicorp/vault" {
-  version = "5.8.0"
+  version     = "5.8.0"
+  constraints = ">= 5.8.0"
   hashes = [
     "h1:eSJgYoJoVMce2xjJJCeAZnJELsC4RoqaotD0fgfn6dw=",
     "h1:gk1cR+x1D+TEz05MKWmpp0p06+Trob5cN0eYU1vZGJs=",
