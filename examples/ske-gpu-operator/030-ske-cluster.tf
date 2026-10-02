@@ -12,32 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-data "stackit_ske_machine_image_versions" "this" {
-  version_state = "SUPPORTED"
-}
-
-locals {
-  flatcar_supported_version = one(flatten([
-    for mi in data.stackit_ske_machine_image_versions.this.machine_images : [
-      for v in mi.versions :
-      v.version
-      if mi.name == "flatcar"
-    ]
-  ]))
-  ubuntu_supported_version = one(flatten([
-    for mi in data.stackit_ske_machine_image_versions.this.machine_images : [
-      for v in mi.versions :
-      v.version
-      if mi.name == "ubuntu"
-    ]
-  ]))
-}
-
 resource "stackit_ske_cluster" "this" {
   project_id             = var.project_id
   name                   = "ske-gpu"
   kubernetes_version_min = var.kubernetes_version_min
 
+  # Without os_version_min, the provider selects the newest supported image of os_name.
   node_pools = [
     {
       name               = "standard"
@@ -46,7 +26,6 @@ resource "stackit_ske_cluster" "this" {
       maximum            = "9"
       max_surge          = "3"
       availability_zones = ["eu01-1", "eu01-2", "eu01-3"]
-      os_version_min     = local.flatcar_supported_version
       os_name            = "flatcar"
       volume_size        = 150
       volume_type        = "storage_premium_perf6"
@@ -54,7 +33,6 @@ resource "stackit_ske_cluster" "this" {
     {
       name               = "gpu-pool-h100-2"
       machine_type       = "n3.14d.g1"
-      os_version_min     = local.ubuntu_supported_version
       os_name            = "ubuntu"
       minimum            = "1"
       maximum            = "1"
