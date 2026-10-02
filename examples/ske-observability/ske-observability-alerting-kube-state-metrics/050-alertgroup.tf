@@ -13,7 +13,7 @@
 # limitations under the License.
 
 resource "stackit_observability_alertgroup" "example" {
-  project_id  = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+  project_id  = var.stackit_project_id
   instance_id = stackit_observability_instance.example.instance_id
   name        = "TestAlertGroup"
   interval    = "2h"

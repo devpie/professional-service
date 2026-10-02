@@ -13,7 +13,7 @@
 # limitations under the License.
 
 resource "stackit_ske_cluster" "example" {
-  project_id             = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+  project_id             = var.stackit_project_id
   name                   = "example"
   kubernetes_version_min = "1.31"
   node_pools = [
@@ -33,7 +33,7 @@ resource "stackit_ske_cluster" "example" {
 }
 
 resource "stackit_ske_kubeconfig" "example" {
-  project_id   = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+  project_id   = var.stackit_project_id
   cluster_name = stackit_ske_cluster.example.name
   refresh      = true
 }
