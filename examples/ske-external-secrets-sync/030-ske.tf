@@ -15,7 +15,7 @@
 resource "stackit_ske_cluster" "ske_cluster_01" {
   project_id             = var.stackit_project_id
   name                   = "secret-test"
-  kubernetes_version_min = "1.33"
+  kubernetes_version_min = var.kubernetes_version_min
 
   node_pools = [
     {
