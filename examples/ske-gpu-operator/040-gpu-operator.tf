@@ -22,12 +22,15 @@ resource "kubernetes_namespace_v1" "gpu_operator" {
   }
 }
 
+# NVIDIA documents GPU Operator 26.3.x for Kubernetes 1.32 to 1.36 on Ubuntu
+# 22.04 with containerd 1.7 to 2.3. The STACKIT how-to "Use NVIDIA GPUs" names
+# v26.3.3.
 resource "helm_release" "gpu_operator" {
   name       = "gpu-operator"
   namespace  = kubernetes_namespace_v1.gpu_operator.metadata[0].name
   repository = "https://helm.ngc.nvidia.com/nvidia"
   chart      = "gpu-operator"
-  version    = "25.3.1"
+  version    = "v26.3.3"
 
   values = [
     local.gpu_operator_helm_values
