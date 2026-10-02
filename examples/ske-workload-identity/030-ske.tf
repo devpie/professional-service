@@ -15,7 +15,7 @@
 resource "stackit_ske_cluster" "this" {
   project_id             = var.stackit_project_id
   name                   = var.cluster_name
-  kubernetes_version_min = "1.35.6"
+  kubernetes_version_min = var.kubernetes_version_min
 
   node_pools = [
     {

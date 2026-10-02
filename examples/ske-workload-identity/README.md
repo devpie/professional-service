@@ -17,9 +17,12 @@ Reference: [STACKIT Docs — Workload Identity](https://docs.stackit.cloud/produ
 ## Usage
 
 ```bash
+cp terraform.tfvars.example terraform.tfvars
 terraform init
 terraform apply
 ```
+
+`terraform.tfvars` needs `stackit_project_id`. Without `kubernetes_version_min`, the provider picks the latest Kubernetes version that SKE supports.
 
 Terraform creates the SKE cluster, the STACKIT service account, and configures the OIDC federation trust automatically. No manual portal steps required.
 
