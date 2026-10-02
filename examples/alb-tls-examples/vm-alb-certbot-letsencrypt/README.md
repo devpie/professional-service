@@ -256,7 +256,7 @@ See [vm-alb-certbot-letsencrypt/readme.md](vm-alb-certbot-letsencrypt/readme.md)
 ```
 .
 ├── 00-backend.tf              # S3-compatible remote state (STACKIT Object Storage)
-├── 00-provider.tf             # Provider declarations (stackit, random)
+├── 00-provider.tf             # Provider declarations (stackit)
 ├── 01-variables.tf            # All input variables with descriptions and defaults
 ├── 02-resource-hierarchy.tf   # Folder and project
 ├── 03-network.tf              # VPC, security group, ingress/egress rules
