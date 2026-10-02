@@ -10,6 +10,10 @@ The [stackit-pod-identity-webhook](https://github.com/stackitcloud/stackit-pod-i
 
 Reference: [STACKIT Docs — Workload Identity](https://docs.stackit.cloud/products/runtime/kubernetes-engine/how-tos/workload-identity/)
 
+## Prerequisites
+
+- STACKIT provider 0.117.0 or later
+
 ## Usage
 
 ```bash
