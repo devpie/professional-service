@@ -13,5 +13,16 @@
 # limitations under the License.
 
 output "url" {
-  value = "${stackit_dns_record_set.svc.name}.${stackit_dns_zone.svc_zone.dns_name}"
+  description = "Host name the ingress serves the demo application on"
+  value       = "${stackit_dns_record_set.svc.name}.${stackit_dns_zone.svc_zone.dns_name}"
+}
+
+output "ske_cluster_name" {
+  description = "Name of the SKE cluster"
+  value       = stackit_ske_cluster.default.name
+}
+
+output "kubeconfig_command" {
+  description = "Fetch a kubeconfig for kubectl"
+  value       = "stackit ske kubeconfig create ${stackit_ske_cluster.default.name} --project-id ${var.stackit_project_id} --region ${stackit_ske_cluster.default.region} --expiration 8h"
 }
