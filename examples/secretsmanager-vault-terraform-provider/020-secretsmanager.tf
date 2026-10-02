@@ -13,12 +13,12 @@
 # limitations under the License.
 
 resource "stackit_secretsmanager_instance" "example" {
-  project_id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+  project_id = var.stackit_project_id
   name       = "example-instance"
 }
 
 resource "stackit_secretsmanager_user" "example" {
-  project_id    = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+  project_id    = var.stackit_project_id
   instance_id   = stackit_secretsmanager_instance.example.instance_id
   description   = "Example user"
   write_enabled = true

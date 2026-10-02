@@ -13,7 +13,7 @@
 # limitations under the License.
 
 resource "stackit_observability_instance" "example" {
-  project_id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+  project_id = var.stackit_project_id
   name       = "example-instance"
   plan_name  = "Observability-Monitoring-Medium-EU01"
 }
