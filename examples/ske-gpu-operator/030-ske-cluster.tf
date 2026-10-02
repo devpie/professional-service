@@ -12,10 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-data "stackit_ske_kubernetes_versions" "this" {
-  version_state = "SUPPORTED"
-}
-
 data "stackit_ske_machine_image_versions" "this" {
   version_state = "SUPPORTED"
 }
@@ -40,7 +36,7 @@ locals {
 resource "stackit_ske_cluster" "this" {
   project_id             = var.project_id
   name                   = "ske-gpu"
-  kubernetes_version_min = data.stackit_ske_kubernetes_versions.this.kubernetes_versions.0.version
+  kubernetes_version_min = var.kubernetes_version_min
 
   node_pools = [
     {

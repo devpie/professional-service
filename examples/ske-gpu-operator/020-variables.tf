@@ -19,3 +19,12 @@ variable "project_id" {
 variable "stackit_service_account_key_path" {
   default = ""
 }
+
+# Kubernetes 1.36 needs containerd 2.0, which SKE Ubuntu 22.04 nodes lack (SKE
+# release note of 2026-08-27). The GPU node pool runs Ubuntu, so the default
+# stays on 1.35. SKE expires Kubernetes 1.35 on 2027-02-10.
+variable "kubernetes_version_min" {
+  type        = string
+  description = "Minimum Kubernetes version of the SKE cluster. MAJOR.MINOR selects the newest patch of that minor version. Cluster creation fails once SKE no longer offers the pinned version."
+  default     = "1.35"
+}
