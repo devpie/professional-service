@@ -15,7 +15,7 @@
 resource "stackit_ske_cluster" "example" {
   project_id             = var.stackit_project_id
   name                   = "example"
-  kubernetes_version_min = "1.31"
+  kubernetes_version_min = var.kubernetes_version_min
   node_pools = [
     {
       name               = "standard"
@@ -24,7 +24,6 @@ resource "stackit_ske_cluster" "example" {
       maximum            = "9"
       max_surge          = "3"
       availability_zones = ["eu01-1", "eu01-2", "eu01-3"]
-      os_version_min     = "4081.2.1"
       os_name            = "flatcar"
       volume_size        = 32
       volume_type        = "storage_premium_perf6"

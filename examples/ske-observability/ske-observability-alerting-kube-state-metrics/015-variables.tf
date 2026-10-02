@@ -21,3 +21,9 @@ variable "alert_email" {
   type        = string
   description = "Email address that receives the alert notifications"
 }
+
+variable "kubernetes_version_min" {
+  type        = string
+  description = "Minimum Kubernetes version of the SKE cluster. Unset creates the cluster on the latest version SKE supports. Cluster creation fails once SKE no longer offers the pinned version."
+  default     = null
+}

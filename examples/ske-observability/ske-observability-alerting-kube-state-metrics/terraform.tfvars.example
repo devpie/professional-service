@@ -2,3 +2,7 @@ stackit_project_id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 
 # Receives the alert notifications.
 alert_email = "admin@example.com"
+
+# Unset, the cluster is created with the latest Kubernetes version that SKE
+# supports. Uncomment to pin a minimum version instead.
+# kubernetes_version_min = "1.36"
