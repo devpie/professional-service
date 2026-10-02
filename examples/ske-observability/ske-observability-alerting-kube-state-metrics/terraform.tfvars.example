@@ -1,5 +1,8 @@
 stackit_project_id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 
+# Unset, the provider reads STACKIT_SERVICE_ACCOUNT_KEY_PATH or its credentials file.
+# stackit_service_account_key_path = "/path/to/sa-key.json"
+
 # Receives the alert notifications.
 alert_email = "admin@example.com"
 
