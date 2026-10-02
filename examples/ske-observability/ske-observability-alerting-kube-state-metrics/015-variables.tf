@@ -34,6 +34,12 @@ variable "alert_email" {
   description = "Email address that receives the alert notifications"
 }
 
+variable "observability_plan_name" {
+  type        = string
+  description = "Plan of the Observability instance, for example Observability-Starter-EU01 for a smaller one"
+  default     = "Observability-Large-EU01"
+}
+
 variable "kubernetes_version_min" {
   type        = string
   description = "Minimum Kubernetes version of the SKE cluster. Unset creates the cluster on the latest version SKE supports. Cluster creation fails once SKE no longer offers the pinned version."
