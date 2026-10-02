@@ -22,8 +22,4 @@ This module provisions a STACKIT project and, in that project, the STACKIT Postg
    terraform apply
    ```
 
-4. Extract the generated PostgreSQL connection string from the Terraform outputs. This URI is required to configure the remote backend in the next phase.
-
-   ```sh
-   terraform output -raw pg_connection_uri
-   ```
+The next phase reads the output `pg_connection_uri` from this directory.

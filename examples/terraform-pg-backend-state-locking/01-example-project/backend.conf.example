@@ -1,1 +1,1 @@
-conn_str=""
+conn_str = "postgres://tf_state_user:<password>@<host>:<port>/terraform_state?sslmode=require"
