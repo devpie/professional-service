@@ -323,6 +323,13 @@ terraform apply -target=helm_release.otel_operator
 terraform apply
 ```
 
+## Dashboard: ingest by source
+
+[`dashboards/ingest-by-source.json`](dashboards/ingest-by-source.json) shows what each source
+costs: metric samples per minute against the plan limit, log bytes and spans.
+
+![dashboard](dashboards/dashboard_1.png)
+
 ## Cleanup
 
 ```bash
