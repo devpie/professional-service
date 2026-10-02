@@ -31,7 +31,7 @@ Automated user and group synchronization to STACKIT:
 
 Copy `terraform.tfvars.example` to `terraform.tfvars` and set the values. Without `stackit_service_account_key_path`, the provider falls back to `STACKIT_SERVICE_ACCOUNT_KEY_PATH`, then to its credentials file `$HOME/.stackit/credentials.json` ([provider authentication](https://registry.terraform.io/providers/stackitcloud/stackit/latest/docs)).
 
-The first deployment runs in four steps. Terraform needs a working connection to the cluster and the installed cert-manager CRDs already while it plans `kubernetes_manifest.cluster_issuer`. The `authentik` provider reads data sources from the Authentik API while Terraform plans. Authentik therefore has to run behind a valid certificate before the last step starts. A `depends_on` does not help here: it orders the apply, but Terraform plans all resources before it applies any.
+The first deployment runs in four steps. Terraform needs a working connection to the cluster and the installed cert-manager CRDs already while it plans `kubernetes_manifest.cluster_issuer`. A `depends_on` does not help here: it orders the apply, but Terraform plans all resources before it applies any. The `authentik` provider reads data sources from the Authentik API while Terraform plans. Authentik therefore has to run behind a valid certificate before the last step starts.
 
 1. Create the cluster, the ingress controller and cert-manager:
 
