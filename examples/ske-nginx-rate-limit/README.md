@@ -6,7 +6,7 @@ When your application is accessed through a Load Balancer, the original client I
 STACKIT supports Proxy Protocol version 2. Please follow the steps below to ensure your application and ingress-nginx controller can correctly receive and log the original client IP.
 
 **Reference:**
-Official STACKIT documentation: [Load Balancer SKE - TCP Proxy Protocol](https://docs.stackit.cloud/stackit/en/load-balancer-ske-28476594.html#LoadBalancerSKE-TCPProxyProtocol)
+Official STACKIT documentation: [Load Balancer SKE - TCP Proxy Protocol](https://docs.stackit.cloud/products/runtime/kubernetes-engine/basics/networking/load-balancing/#tcp-proxy-protocol)
 
 ---
 
@@ -64,7 +64,7 @@ Make sure the application behind the Load Balancer is compatible with Proxy Prot
 Your ingress controller must also be configured to accept Proxy Protocol headers.
 This may require special Helm values when deploying ingress-nginx.
 
-- See how this is done in [07-helm.tf](07-helm.tf) for this repository.
+- See how this is done in [070-helm.tf](070-helm.tf) for this repository.
 - In general, for ingress-nginx Helm charts, you will need:
   - `controller.config.use-proxy-protocol: "true"`
   - Any additional Service annotations as required by your cloud provider and use case.
