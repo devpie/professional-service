@@ -22,6 +22,51 @@ Automated user and group synchronization to STACKIT:
 - **Authentication**: Uses a long-lived token (required for Authentik Community Edition).
 - **Mapping**: Synchronizes both Users and Groups (e.g., `stackit-admins`).
 
+## Prerequisites
+
+- STACKIT provider 0.117.0 or later
+- An authenticated `stackit` CLI (`stackit auth login` or `stackit auth activate-service-account`) and `kubectl` for the certificate check
+
+## Usage
+
+Copy `terraform.tfvars.example` to `terraform.tfvars` and set the values. Without `stackit_service_account_key_path`, the provider falls back to `STACKIT_SERVICE_ACCOUNT_KEY_PATH`, then to its credentials file `$HOME/.stackit/credentials.json` ([provider authentication](https://registry.terraform.io/providers/stackitcloud/stackit/latest/docs)).
+
+The first deployment runs in four steps. Terraform needs a working connection to the cluster and the installed cert-manager CRDs already while it plans `kubernetes_manifest.cluster_issuer`. The `authentik` provider reads data sources from the Authentik API while Terraform plans. Authentik therefore has to run behind a valid certificate before the last step starts. A `depends_on` does not help here: it orders the apply, but Terraform plans all resources before it applies any.
+
+1. Create the cluster, the ingress controller and cert-manager:
+
+   ```bash
+   terraform init
+   terraform apply \
+     -target=module.ske \
+     -target=helm_release.cert_manager \
+     -target=helm_release.nginx_ingress
+   ```
+
+2. Create the `ClusterIssuer` and install Authentik:
+
+   ```bash
+   terraform apply \
+     -target=kubernetes_manifest.cluster_issuer \
+     -target=time_sleep.wait_60_seconds
+   ```
+
+3. Wait until cert-manager has issued the certificate for the Authentik ingress:
+
+   ```bash
+   stackit ske kubeconfig create ske-test --project-id <your-project-id> --region eu01 --expiration 8h
+   kubectl config use-context ske-test
+   kubectl -n authentik wait --for=condition=Ready certificate/authentik-tls --timeout=10m
+   ```
+
+4. Create the Authentik users, the group, the OIDC provider and the SCIM provider:
+
+   ```bash
+   terraform apply
+   ```
+
+Later changes need only `terraform apply`.
+
 ---
 
 ## ⚠️ STACKIT Integration Process

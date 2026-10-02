@@ -1,0 +1,8 @@
+stackit_project_id              = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+acme_email                      = "admin@example.com"
+authentik_scim_long_lived_token = "<SCIM token for the STACKIT SCIM API>"
+authentik_number_of_users       = 3
+authentik_default_user_password = "<password of the test users>"
+
+# Unset falls back to STACKIT_SERVICE_ACCOUNT_KEY_PATH, then to the credentials file.
+# stackit_service_account_key_path = "/path/to/stackit-sa.json"
