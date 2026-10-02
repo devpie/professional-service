@@ -40,4 +40,4 @@ A successful run logs `Authentication successful, API call succeeded`. That line
 
 ## Assigning permissions
 
-The created STACKIT service account has no roles by default. Add project-level role assignments in Terraform via `stackit_authorization_project_role_assignment` to match your workload's actual API access requirements.
+The created STACKIT service account has no roles by default. Add project-level role assignments in Terraform via `stackit_authorization_project_role_assignment` to match your workload's actual API access requirements. Role assignments belong to the provider experiment `iam`, so add `experiments = ["iam"]` to the `stackit` provider block.
