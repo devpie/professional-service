@@ -24,6 +24,5 @@ terraform {
 provider "stackit" {
   default_region           = var.stackit_region
   service_account_key_path = var.stackit_service_account_key_path
-  experiments              = ["routing-tables", "network", "iam"]
-  enable_beta_resources    = true
+  experiments              = ["routing-tables"]
 }
