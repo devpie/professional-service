@@ -13,7 +13,9 @@
 # limitations under the License.
 
 terraform {
-  required_version = ">= 1.5.0"
+  # The S3 backend settings in examples/backend.conf.example (endpoints,
+  # skip_requesting_account_id, skip_s3_checksum) need Terraform 1.6.3 or later.
+  required_version = ">= 1.6.3"
   required_providers {
     stackit = {
       source  = "stackitcloud/stackit"

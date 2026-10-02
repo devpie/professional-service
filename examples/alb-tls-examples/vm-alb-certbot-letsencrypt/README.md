@@ -99,7 +99,7 @@ Phase 3+ — monthly cron job on the VM
 
 | Tool                                                           | Version  | Notes                                              |
 | -------------------------------------------------------------- | -------- | -------------------------------------------------- |
-| [Terraform](https://developer.hashicorp.com/terraform/install) | >= 1.5.0 | Infrastructure provisioning                        |
+| [Terraform](https://developer.hashicorp.com/terraform/install) | >= 1.6.3 | Infrastructure provisioning                        |
 | [STACKIT CLI](https://github.com/stackitcloud/stackit-cli)     | latest   | Image/machine-type lookups, role assignment        |
 | SSH client                                                     | —        | VM access                                          |
 | Docker                                                         | —        | Build and run vm-alb-certbot-letsencrypt on the VM |

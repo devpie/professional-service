@@ -88,7 +88,7 @@ STACKIT Organisation
 
 | Tool        | Version  |
 | ----------- | -------- |
-| Terraform   | >= 1.5.7 |
+| Terraform   | >= 1.6.3 |
 | STACKIT CLI | latest   |
 | SSH client  | —        |
 
@@ -190,7 +190,7 @@ docker logs nginx
 
 ```
 vm-alb-self-signed-cert/
-├── .terraform-version          # Terraform version pin (v1.5.7)
+├── .terraform-version          # Terraform version pin (v1.16.2)
 ├── .gitignore
 ├── 00-backend.tf               # S3 remote state (STACKIT Object Storage)
 ├── 00-provider.tf              # stackitcloud/stackit + hashicorp/tls

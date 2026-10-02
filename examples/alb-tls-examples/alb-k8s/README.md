@@ -73,13 +73,13 @@ Client → STACKIT DNS → STACKIT NLB (auto) → Traefik Ingress Controller →
 
 ## Prerequisites
 
-| Tool        | Version |
-| ----------- | ------- |
-| Terraform   | >= 1.3  |
-| helm        | >= 3.x  |
-| kubectl     | >= 1.28 |
-| STACKIT CLI | >= 0.64 |
-| jq          | any     |
+| Tool        | Version  |
+| ----------- | -------- |
+| Terraform   | >= 1.6.3 |
+| helm        | >= 3.x   |
+| kubectl     | >= 1.28  |
+| STACKIT CLI | >= 0.64  |
+| jq          | any      |
 
 ### Required STACKIT permissions
 

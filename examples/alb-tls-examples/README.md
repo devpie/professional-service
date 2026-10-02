@@ -62,7 +62,7 @@ alb-tls-examples/
 | Requirement             | Details                                                  |
 | ----------------------- | -------------------------------------------------------- |
 | STACKIT account         | Access to the STACKIT Portal                             |
-| Terraform               | >= 1.5.7 (recommended: use `tfenv`)                      |
+| Terraform               | >= 1.6.3 (recommended: use `tfenv`)                      |
 | STACKIT CLI             | For image UUIDs, project IDs, debugging                  |
 | SSH key pair            | Ed25519 or RSA — only the public key goes into Terraform |
 | STACKIT service account | JSON key with the roles required for the showcase        |
