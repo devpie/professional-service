@@ -22,11 +22,13 @@ resource "stackit_volume" "encrypted" {
     type = "image"
     id   = var.image_id
   }
+  # IaaS label values allow only letters, digits, "-", "_" and ".".
+  # The labels therefore carry the ID of the service account, not its email.
   labels = {
-    kek_key_id      = stackit_kms_key.volume-key.key_id
-    kek_key_version = 1
-    kek_keyring_id  = stackit_kms_keyring.volume.keyring_id
-    service_account = stackit_service_account.iaas-kms.email
+    kek_key_id         = stackit_kms_key.volume-key.key_id
+    kek_key_version    = 1
+    kek_keyring_id     = stackit_kms_keyring.volume.keyring_id
+    service_account_id = stackit_service_account.iaas-kms.service_account_id
   }
   encryption_parameters = {
     kek_key_id      = stackit_kms_key.volume-key.key_id
