@@ -1,0 +1,4 @@
+project_id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+
+# Unset, the cluster runs the latest Kubernetes version SKE supports.
+# kubernetes_version_min = "1.36"

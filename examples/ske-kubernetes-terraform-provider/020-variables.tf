@@ -16,3 +16,9 @@ variable "project_id" {
   description = "The STACKIT Project ID"
   type        = string
 }
+
+variable "kubernetes_version_min" {
+  description = "Minimum Kubernetes version of the SKE cluster. Unset creates the cluster on the latest version SKE supports. Cluster creation fails once SKE no longer offers the pinned version."
+  type        = string
+  default     = null
+}
