@@ -62,3 +62,9 @@ variable "opnsense_machine_type" {
   type        = string
   default     = "c2i.2"
 }
+
+variable "opnsense_image_path" {
+  description = "Path to the OPNsense qcow2 image on the machine that runs Terraform. The file must exist before terraform plan; README.md shows the download command."
+  type        = string
+  default     = "opnsense.qcow2"
+}

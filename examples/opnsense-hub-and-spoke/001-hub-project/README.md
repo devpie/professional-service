@@ -50,6 +50,7 @@ OPNsense credentials are `root` / `STACKIT123!` — change these on first login.
 | `org_admin`               | Email of the STACKIT user set as project owner    |
 | `mgmt_ip_range`           | CIDR allowed to reach the firewall MGMT interface |
 | `opnsense_machine_type`   | Machine type for the firewall (default `c2i.2`)   |
+| `opnsense_image_path`     | OPNsense image file (default `opnsense.qcow2`)    |
 
 See `000-variables.tf` for the full list, defaults, and descriptions.
 
@@ -71,6 +72,9 @@ See `000-variables.tf` for the full list, defaults, and descriptions.
 cp backend.conf.example backend.conf   # fill in bucket + S3 credentials
 cp ../terraform.tfvars.example terraform.tfvars  # fill in variable values
 # place your service account key at keys/service-account.json
+
+# the provider checks during plan that the image file exists
+curl -fL -o opnsense.qcow2 https://opnsense.object.storage.eu01.onstackit.cloud/opnsense-26.1-amd64-21-05-2026.qcow2
 
 terraform init -backend-config=backend.conf
 terraform apply

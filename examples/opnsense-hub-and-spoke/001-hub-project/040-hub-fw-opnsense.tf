@@ -12,25 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-resource "null_resource" "opnsense_image_file" {
-  triggers = {
-    always_run = timestamp()
-  }
-  provisioner "local-exec" {
-    command = "curl -o opnsense.qcow2 https://opnsense.object.storage.eu01.onstackit.cloud/opnsense-26.1-amd64-21-05-2026.qcow2"
-  }
-  lifecycle {
-    ignore_changes = all
-  }
-}
-
-# Upload VPN Appliance Image to STACKIT
+# Upload VPN Appliance Image to STACKIT.
+# The provider checks during plan that the file exists, so download it first (see README.md).
 resource "stackit_image" "opnsense_image" {
   project_id      = local.hub_project_id
   name            = "opnsense-26.1-amd64-image"
-  local_file_path = "opnsense.qcow2"
+  local_file_path = var.opnsense_image_path
   disk_format     = "qcow2"
-  depends_on      = [null_resource.opnsense_image_file]
   min_disk_size   = 16
   min_ram         = 2
   config = {

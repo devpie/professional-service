@@ -172,6 +172,7 @@ Deploy in numbered order. The hub creates the shared network area that spokes de
 ```sh
 # Step 1 — Deploy the hub (creates the network area and the OPNsense firewall)
 cd 001-hub-project
+curl -fL -o opnsense.qcow2 https://opnsense.object.storage.eu01.onstackit.cloud/opnsense-26.1-amd64-21-05-2026.qcow2
 terraform init -backend-config=backend.conf
 terraform apply
 
@@ -210,7 +211,13 @@ OPNsense is provisioned from a qcow2 image with three network interfaces:
 
 The WAN interface boots first (`vtnet0`); LAN and MGMT are attached sequentially and appear as `vtnet1` and `vtnet2`. The MGMT interface is protected by a security group that restricts SSH, HTTP, and HTTPS access to the CIDR set in `mgmt_ip_range`.
 
-**OPNsense image:** The image is downloaded automatically during `terraform apply` via a `null_resource` provisioner. The qcow2 image is fetched from the STACKIT Object Storage endpoint and uploaded to STACKIT as a custom image.
+**OPNsense image:** Download the qcow2 image (994 MB) from the STACKIT Object Storage endpoint into `001-hub-project` before the first `terraform plan` or `terraform apply`:
+
+```sh
+curl -fL -o opnsense.qcow2 https://opnsense.object.storage.eu01.onstackit.cloud/opnsense-26.1-amd64-21-05-2026.qcow2
+```
+
+The STACKIT provider checks during `terraform plan` that the file in `opnsense_image_path` (default `opnsense.qcow2`) exists. `terraform apply` uploads the file to STACKIT as a custom image.
 
 ---
 
