@@ -30,7 +30,7 @@ terraform {
     }
     helm = {
       source  = "hashicorp/helm"
-      version = "2.17.0"
+      version = ">= 3.1.1"
     }
     vault = {
       source  = "hashicorp/vault"
@@ -54,7 +54,7 @@ provider "kubernetes" {
 }
 
 provider "helm" {
-  kubernetes {
+  kubernetes = {
     host                   = yamldecode(stackit_ske_kubeconfig.ske_kubeconfig_01.kube_config).clusters.0.cluster.server
     client_certificate     = base64decode(yamldecode(stackit_ske_kubeconfig.ske_kubeconfig_01.kube_config).users.0.user.client-certificate-data)
     client_key             = base64decode(yamldecode(stackit_ske_kubeconfig.ske_kubeconfig_01.kube_config).users.0.user.client-key-data)
