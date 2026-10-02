@@ -14,7 +14,8 @@ project_name    = "alb-k8s-showcase"
 
 # ── SKE Cluster ─────────────────────────────────────────────────────────────
 cluster_name           = "alb-k8s"
-kubernetes_version_min = "1.33"
+# Unset takes the latest Kubernetes version SKE supports.
+# kubernetes_version_min = "1.36"
 node_machine_type      = "g2i.2"
 node_os_name           = "flatcar"
 node_min               = "1"
