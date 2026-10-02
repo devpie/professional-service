@@ -69,6 +69,12 @@ This may require special Helm values when deploying ingress-nginx.
   - `controller.config.use-proxy-protocol: "true"`
   - Any additional Service annotations as required by your cloud provider and use case.
 
+The ingress-nginx project ended its maintenance in March 2026 ([announcement](https://kubernetes.io/blog/2025/11/11/ingress-nginx-retirement/)).
+It publishes no further releases and no security fixes.
+Existing installations keep working.
+The Helm chart 4.12.2 that this example installs stays available.
+The Kubernetes project recommends a move to Gateway API or to another Ingress controller.
+
 ---
 
 ## 3. Testing
