@@ -33,10 +33,10 @@ resource "stackit_network_interface" "nic" {
 
 data "stackit_security_group" "default" {
   project_id        = var.STACKIT_PROJECT_ID
-  security_group_id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+  security_group_id = var.security_group_id
 }
 
 data "stackit_network" "default" {
   project_id = var.STACKIT_PROJECT_ID
-  network_id = "a9d59cc6-cc5b-4f9f-a9dc-315b0fc78a35"
+  network_id = var.network_id
 }

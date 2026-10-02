@@ -31,3 +31,13 @@ variable "STACKIT_PROJECT_ID" {
   description = "STACKIT Project ID"
   default     = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 }
+
+variable "network_id" {
+  type        = string
+  description = "ID of the existing network the server joins"
+}
+
+variable "security_group_id" {
+  type        = string
+  description = "ID of the existing security group assigned to the network interface of the server"
+}
