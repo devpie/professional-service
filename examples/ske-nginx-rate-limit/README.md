@@ -10,6 +10,27 @@ Official STACKIT documentation: [Load Balancer SKE - TCP Proxy Protocol](https:/
 
 ---
 
+## Prerequisites
+
+- Terraform 1.10 or later
+- STACKIT provider 0.117.0 or later
+- [`fortio`](https://fortio.org/) for the load test
+- An authenticated `stackit` CLI (`stackit auth login` or `stackit auth activate-service-account`) and `kubectl` to read the controller log
+
+## Usage
+
+```bash
+cp terraform.tfvars.example terraform.tfvars
+terraform init
+terraform apply
+```
+
+`terraform.tfvars` needs `stackit_project_id`. Without `stackit_service_account_key_path`, the provider falls back to `STACKIT_SERVICE_ACCOUNT_KEY_PATH`, then to its credentials file `$HOME/.stackit/credentials.json` ([provider authentication](https://registry.terraform.io/providers/stackitcloud/stackit/latest/docs)).
+
+The configuration creates an SKE cluster, a DNS zone below `runs.onstackit.cloud`, a public IP, ingress-nginx and an nginx demo deployment. The Ingress of the demo deployment accepts 10 requests per second from each client IP. The STACKIT load balancer passes the client IP to the pods only with the Proxy Protocol, so this limit depends on it.
+
+---
+
 ## 1. Configure the Service for Proxy Protocol
 
 The Kubernetes `Service` of type `LoadBalancer` must be annotated to enable Proxy Protocol support from STACKIT.
@@ -55,10 +76,18 @@ This may require special Helm values when deploying ingress-nginx.
 To load test your endpoint and validate real client IP handling, you can use [`fortio`](https://fortio.org/):
 
 ```sh
-fortio load --qps 50 -t 10s <url from outputs.tf>
+fortio load --qps 50 -t 10s "http://$(terraform output -raw url)/"
 ```
 
-Replace `<url from outputs.tf>` with the Load Balancer or Ingress endpoint output by your Terraform configuration.
+Once a client exceeds the limit and its burst allowance of five times the limit, the controller answers with HTTP status 503.
+
+The controller log shows the client IP at the start of each access log line:
+
+```sh
+eval "$(terraform output -raw kubeconfig_command)"
+kubectl config use-context "$(terraform output -raw ske_cluster_name)"
+kubectl logs -n nginx -l app.kubernetes.io/component=controller --tail 20
+```
 
 ---
 
