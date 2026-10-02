@@ -17,7 +17,7 @@ terraform {
   required_providers {
     stackit = {
       source  = "stackitcloud/stackit"
-      version = ">= 0.98.0"
+      version = ">= 0.117.0"
     }
     tls = {
       source  = "hashicorp/tls"
