@@ -25,7 +25,7 @@ terraform apply -target=helm_release.external_secrets_operator_chart
 terraform apply
 ```
 
-The first apply creates the SKE cluster and installs the operator chart. The second apply creates everything else: the Secrets Manager instance and user, the random secret in it, and the two custom resources.
+The first apply creates the SKE cluster and the namespace `external-secrets` and installs the operator chart there. The second apply creates the remaining resources: the Secrets Manager instance and user, the random secret in it, the namespace `dev`, the Kubernetes secret with the user password, and the two custom resources.
 
 `terraform.tfvars` needs `stackit_project_id`. Without `stackit_service_account_key_path`, the provider falls back to `STACKIT_SERVICE_ACCOUNT_KEY_PATH`, then to its credentials file `$HOME/.stackit/credentials.json` ([provider authentication](https://registry.terraform.io/providers/stackitcloud/stackit/latest/docs)). Without `kubernetes_version_min`, SKE creates the cluster on the latest Kubernetes version it supports.
 
