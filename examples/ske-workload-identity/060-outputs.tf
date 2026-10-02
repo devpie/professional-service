@@ -17,6 +17,11 @@ output "cluster_name" {
   value       = stackit_ske_cluster.this.name
 }
 
+output "kubeconfig_command" {
+  description = "Fetch a kubeconfig for kubectl"
+  value       = "stackit ske kubeconfig create ${stackit_ske_cluster.this.name} --project-id ${var.stackit_project_id} --region ${stackit_ske_cluster.this.region} --expiration 8h"
+}
+
 output "stackit_service_account_email" {
   description = "Email of the STACKIT service account that the workload impersonates."
   value       = stackit_service_account.workload.email

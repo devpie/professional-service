@@ -13,6 +13,7 @@ Reference: [STACKIT Docs — Workload Identity](https://docs.stackit.cloud/produ
 ## Prerequisites
 
 - STACKIT provider 0.117.0 or later
+- An authenticated `stackit` CLI (`stackit auth login` or `stackit auth activate-service-account`) and `kubectl` for the verify step
 
 ## Usage
 
@@ -29,8 +30,8 @@ Terraform creates the SKE cluster, the STACKIT service account, and configures t
 ## Verify
 
 ```bash
-stackit ske kubeconfig create <cluster-name> --project-id <project-id> -y
-kubectl config use-context <cluster-name>
+eval "$(terraform output -raw kubeconfig_command)"
+kubectl config use-context "$(terraform output -raw cluster_name)"
 
 # Watch the demo job — it lists the public IP ranges through the STACKIT IaaS API using the injected identity
 kubectl logs job/workload-identity-demo -n workload-identity-demo
