@@ -16,7 +16,7 @@ terraform {
   required_providers {
     stackit = {
       source  = "stackitcloud/stackit"
-      version = "~> 0.35"
+      version = ">= 0.117.0"
     }
     kubernetes = {
       source  = "hashicorp/kubernetes"
