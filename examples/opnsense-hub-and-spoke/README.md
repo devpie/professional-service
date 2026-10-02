@@ -135,6 +135,8 @@ Download your STACKIT service account key from the portal and place it in the `k
 
 The `keys/` directory is gitignored. Never commit key files.
 
+`terraform.tfvars.example` sets `stackit_service_account_key_path` to `./keys/service-account.json`. Without this variable, the provider reads the path from the `STACKIT_SERVICE_ACCOUNT_KEY_PATH` environment variable, then from the credentials file `$HOME/.stackit/credentials.json`.
+
 ### 2. Backend credentials
 
 Copy `backend.conf.example` to `backend.conf` in each project directory:
