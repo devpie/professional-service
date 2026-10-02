@@ -5,6 +5,6 @@
 stackit_org_id      = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 stackit_admin_email = "admin@example.com"
 
-# Unset, the provider reads the key path from STACKIT_SERVICE_ACCOUNT_KEY_PATH,
-# then from the credentials file.
+# Without this line, the provider reads the key path from
+# STACKIT_SERVICE_ACCOUNT_KEY_PATH, then from the credentials file.
 # stackit_service_account_key_path = "/path/to/stackit-sa.json"
