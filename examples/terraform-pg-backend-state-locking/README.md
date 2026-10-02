@@ -6,7 +6,7 @@ This repository demonstrates how to configure STACKIT PostgreSQL Flex as a Terra
 
 To resolve the circular dependency of provisioning a state backend using Terraform, the deployment is split into two isolated stages:
 
-1. **`00-bootstrap/`**: Provisions the backend infrastructure (PostgreSQL Flex instance, database and service user).
+1. **`00-bootstrap/`**: Provisions a project and the backend infrastructure in it (PostgreSQL Flex instance, database `terraform_state` and database user `tf_state_user`).
 2. **`01-example-project/`**: Represents the primary infrastructure, utilizing the provisioned PostgreSQL database as its remote backend.
 
 ---
