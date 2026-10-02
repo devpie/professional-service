@@ -29,7 +29,6 @@ variable "zone" {
 variable "STACKIT_PROJECT_ID" {
   type        = string
   description = "STACKIT Project ID"
-  default     = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 }
 
 variable "network_id" {

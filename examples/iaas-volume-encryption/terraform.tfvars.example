@@ -1,5 +1,7 @@
 # Copy this file to terraform.tfvars and fill in your own values.
 
+STACKIT_PROJECT_ID = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+
 # Existing network and security group of the project.
 # List them with: stackit network list / stackit security-group list
 network_id        = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
