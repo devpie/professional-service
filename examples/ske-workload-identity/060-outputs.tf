@@ -18,7 +18,7 @@ output "cluster_name" {
 }
 
 output "stackit_service_account_email" {
-  description = "Email of the STACKIT service account. Use this when configuring the federated identity provider in the STACKIT Portal."
+  description = "Email of the STACKIT service account that the workload impersonates."
   value       = stackit_service_account.workload.email
 }
 
