@@ -33,6 +33,22 @@ The connection utilizes **BGP (Border Gateway Protocol)** to automatically propa
 
 ![Architecture Diagram](docs/architecture.png)
 
+## Prerequisites
+
+- Terraform 1.11 or later, because `pre_shared_key_wo` is a write-only argument
+- STACKIT provider 0.117.0 or later
+- A service account key with permission to create projects and network areas in the organization `stackit_org_id`
+
+## Usage
+
+```bash
+cp terraform.tfvars.example terraform.tfvars
+terraform init
+terraform apply
+```
+
+`terraform.tfvars` needs `stackit_org_id` and `stackit_admin_email`. The address in `stackit_admin_email` becomes the owner of both projects. Without `stackit_service_account_key_path`, the provider falls back to `STACKIT_SERVICE_ACCOUNT_KEY_PATH`, then to its credentials file `$HOME/.stackit/credentials.json` ([provider authentication](https://registry.terraform.io/providers/stackitcloud/stackit/latest/docs)).
+
 ## How to Test the Connection
 
 Once the deployment is complete, you can verify the VPN tunnel using the provisioned debug machines:
