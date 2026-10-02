@@ -6,10 +6,14 @@
 stackit_region                   = "eu01"
 stackit_service_account_key_path = "keys/sa-key.json"
 
-# ─── Project ──────────────────────────────────────────────────────────────────
+# ─── Resource Hierarchy ───────────────────────────────────────────────────────
 
-# Find your project ID in the STACKIT Portal or via: stackit project list
-project_id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+# Find your Organisation ID in the STACKIT Portal → Organisation → Settings
+organization_id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+
+owner_email  = "your.name@example.com"
+folder_name  = "alb-showcase"
+project_name = "vm-alb-self-signed-cert"
 
 # ─── Naming ───────────────────────────────────────────────────────────────────
 
@@ -50,3 +54,9 @@ tls_validity_hours = 8760 # 1 year
 
 alb_plan_id    = "p10"
 alb_acl_ranges = ["0.0.0.0/0"]
+
+# ─── DNS ──────────────────────────────────────────────────────────────────────
+
+dns_zone_name     = "vm-alb-tls-zone"
+dns_name          = "vm-alb-tls.example.com"
+dns_contact_email = "your.name@example.com"
