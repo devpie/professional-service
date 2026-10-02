@@ -30,9 +30,16 @@ To resolve the circular dependency of provisioning a state backend using Terrafo
 - A service account key for Terraform, see `stackit_service_account_key_path` in `000-variables.tf` of both stages. The service account holds a role on the parent container that includes `resource-manager.project.create` and applies to the new projects, for example `owner`. The two stages create one project each.
 - The ID of the parent container. `stackit_parent_container_id` takes an organization or a folder.
 
+## Usage
+
+1. Follow [00-bootstrap/README.md](00-bootstrap/README.md).
+2. Follow [01-example-project/README.md](01-example-project/README.md).
+
+Run the commands of each stage in the directory of that stage.
+
 ## Clean up
 
-Destroy the stages in reverse order. The database of the bootstrap stage holds the state of the example project, so `terraform destroy` in `01-example-project/` needs that database.
+Destroy the stages in reverse order. The database of the bootstrap stage holds the state of the example project, so `terraform destroy` in `01-example-project/` needs that database. Run both commands in the directory of this README.
 
 ```sh
 terraform -chdir=01-example-project destroy
