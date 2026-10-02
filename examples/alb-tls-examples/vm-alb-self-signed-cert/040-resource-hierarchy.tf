@@ -39,5 +39,7 @@ resource "stackit_resourcemanager_project" "showcase" {
   owner_email         = var.owner_email
   parent_container_id = stackit_resourcemanager_folder.showcase.id
 
-  labels = local.common_labels
+  # A new project needs either the scope label or a networkArea label. PUBLIC
+  # keeps the project outside a network area.
+  labels = merge(local.common_labels, { scope = "PUBLIC" })
 }

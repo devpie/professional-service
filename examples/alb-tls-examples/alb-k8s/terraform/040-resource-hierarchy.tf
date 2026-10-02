@@ -26,4 +26,10 @@ resource "stackit_resourcemanager_project" "this" {
   name                = var.project_name
   parent_container_id = stackit_resourcemanager_folder.this.folder_id
   owner_email         = var.owner_email
+
+  # A new project needs either this label or a networkArea label. PUBLIC keeps
+  # the project outside a network area, so SKE creates the cluster network.
+  labels = {
+    scope = "PUBLIC"
+  }
 }

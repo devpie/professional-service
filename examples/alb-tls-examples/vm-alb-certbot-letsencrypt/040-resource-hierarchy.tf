@@ -29,10 +29,13 @@ resource "stackit_resourcemanager_project" "showcase" {
   owner_email         = var.owner_email
   parent_container_id = stackit_resourcemanager_folder.showcase.id
 
+  # A new project needs either the scope label or a networkArea label. PUBLIC
+  # keeps the project outside a network area.
   labels = {
     environment = "workshop"
     managed-by  = "terraform"
     folder      = var.folder_name
     use-case    = "alb-certbot"
+    scope       = "PUBLIC"
   }
 }
