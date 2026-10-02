@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------------
 # terraform.tfvars.example
 #
-# Copy this file into a project directory (e.g. 00-bootcamp/terraform.tfvars)
+# Copy this file to terraform.tfvars in this directory (01-example-project/)
 # and fill in your values. Do NOT commit terraform.tfvars to version control.
 #
 # Alternatively, export variables as environment variables:
@@ -13,11 +13,11 @@
 # Organization or folder the project is created in.
 stackit_parent_container_id = "<your-organization-or-folder-id>"
 
-## Name of the bootstrapping project
+## Name of the example project
 stackit_project_name = "01-example-project"
 
 # Email address of the STACKIT user set as project owner.
-stackit_org_admin = "<your-admin@mail.com"
+stackit_org_admin = "<your-admin@mail.com>"
 
 # --- Service Account ---------------------------------------------------------
 
