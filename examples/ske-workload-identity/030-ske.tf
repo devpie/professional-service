@@ -24,7 +24,7 @@ resource "stackit_ske_cluster" "this" {
       minimum            = "1"
       maximum            = "3"
       max_surge          = "1"
-      availability_zones = ["eu01-1"]
+      availability_zones = ["${var.stackit_region}-1"]
       os_name            = "flatcar"
       volume_size        = 50
       volume_type        = "storage_premium_perf4"
