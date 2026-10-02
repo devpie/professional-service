@@ -16,3 +16,9 @@ variable "stackit_project_id" {
   type        = string
   description = "STACKIT project that holds the Secrets Manager instance and the Observability instance"
 }
+
+variable "stackit_service_account_key_path" {
+  type        = string
+  description = "Path to the service account key file. Unset falls back to the STACKIT_SERVICE_ACCOUNT_KEY_PATH environment variable, then to that entry in the credentials file ($HOME/.stackit/credentials.json, or STACKIT_CREDENTIALS_PATH)."
+  default     = null
+}
