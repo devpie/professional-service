@@ -19,9 +19,11 @@ resource "stackit_server" "encrypted_server" {
     source_type = "volume"
     source_id   = stackit_volume.encrypted.volume_id
   }
-  availability_zone  = var.zone
-  machine_type       = "g2i.4"
-  user_data          = file("cloud-init.yaml")
+  availability_zone = var.zone
+  machine_type      = "g2i.4"
+  user_data = templatefile("${path.module}/cloud-init.yaml", {
+    administrator_password = var.administrator_password
+  })
   network_interfaces = [stackit_network_interface.nic.network_interface_id]
 }
 

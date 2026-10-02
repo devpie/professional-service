@@ -48,6 +48,13 @@ variable "image_id" {
   description = "ID of the Windows Server image the encrypted boot volume is created from. cloud-init.yaml creates a Windows Administrator account, so the image must be a Windows image. List the images with: stackit image list"
 }
 
+# No default on purpose: Terraform asks for the password, or reads TF_VAR_administrator_password.
+variable "administrator_password" {
+  type        = string
+  description = "Password of the Windows Administrator account. cloud-init.yaml sets it on the first boot. Terraform stores it in plain text in the state."
+  sensitive   = true
+}
+
 variable "network_id" {
   type        = string
   description = "ID of the existing network the server joins"
