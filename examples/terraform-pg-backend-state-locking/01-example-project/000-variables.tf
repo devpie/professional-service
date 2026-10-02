@@ -23,7 +23,7 @@ variable "stackit_parent_container_id" {
 }
 
 variable "stackit_project_name" {
-  description = "Display name of the hub project in STACKIT."
+  description = "Display name of the project this stage creates."
   type        = string
 }
 
@@ -34,10 +34,5 @@ variable "stackit_org_admin" {
 
 variable "stackit_region" {
   description = "STACKIT region (e.g. eu01)."
-  type        = string
-}
-
-variable "default_zone" {
-  description = "Availability zone within the region (e.g. eu01-1)."
   type        = string
 }

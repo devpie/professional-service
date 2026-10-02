@@ -27,4 +27,3 @@ stackit_service_account_key_path = "./keys/service-account.json"
 
 # --- Region ------------------------------------------------------------------
 stackit_region = "eu01"
-default_zone   = "eu01-1"
