@@ -37,7 +37,7 @@ The connection utilizes **BGP (Border Gateway Protocol)** to automatically propa
 
 - Terraform 1.11 or later, because `pre_shared_key_wo` is a write-only argument
 - STACKIT provider 0.117.0 or later
-- A service account key with permission to create projects and network areas in the organization `stackit_org_id`
+- A service account key for Terraform. The service account needs a role on the organization `stackit_org_id` that includes `resource-manager.project.create` and applies to the new projects, for example `owner`. The example creates two network areas and two projects in that organization, and in each project a network, a debug machine and a VPN gateway.
 
 ## Usage
 
