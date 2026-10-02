@@ -2,7 +2,7 @@
 
 Deploys a STACKIT SKE cluster with a Traefik Ingress Controller behind an auto-provisioned NLB.
 TLS is handled in-cluster by cert-manager (Let's Encrypt DNS-01 via STACKIT webhook) — no ALB involved.
-Serves as a conceptual baseline for the upcoming STACKIT ALB integration on Kubernetes.
+For a STACKIT Application Load Balancer as the Ingress of an SKE cluster, see [`ske-alb-controller-waf-extension`](../../ske-alb-controller-waf-extension/README.md) and [`ske-alb-controller-waf-self-installed`](../../ske-alb-controller-waf-self-installed/README.md).
 
 ---
 
@@ -62,12 +62,12 @@ Client → STACKIT DNS → STACKIT NLB (auto) → Traefik Ingress Controller →
 | DNS                    | STACKIT primary zone + A-record pointing to the NLB IP                   |
 | Application            | nginx Deployment + Service + Ingress + Certificate manifest              |
 
-| In this showcase                    | Not in this showcase                               |
-| ----------------------------------- | -------------------------------------------------- |
-| cert-manager + Let's Encrypt DNS-01 | STACKIT ALB Ingress Controller (not yet available) |
-| SKE cluster via Terraform           | Self-signed or manually managed certs              |
-| Traefik Ingress Controller          | ALB direct Kubernetes integration                  |
-| STACKIT DNS-01 webhook              | Multiple namespaces / production Helm values       |
+| In this showcase                    | Not in this showcase                         |
+| ----------------------------------- | -------------------------------------------- |
+| cert-manager + Let's Encrypt DNS-01 | STACKIT ALB Ingress Controller               |
+| SKE cluster via Terraform           | Self-signed or manually managed certs        |
+| Traefik Ingress Controller          | ALB direct Kubernetes integration            |
+| STACKIT DNS-01 webhook              | Multiple namespaces / production Helm values |
 
 ---
 

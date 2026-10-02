@@ -12,60 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# A native STACKIT ALB Ingress Controller for Kubernetes does not yet exist (mid-2026).
-#
-# Current traffic path:
-#   Internet → STACKIT NLB (yawol, auto-provisioned) → Traefik IC → Pod
-#
-# Target path when available:
-#   Internet → STACKIT ALB → Kubernetes Service / Ingress → Pod
-#
-# Expected changes:
-#   - ingressClassName: traefik  →  ingressClassName: <stackit-alb>
-#   - Traefik IC replaced by ALB as L7 termination point
-#   - TLS terminates at the ALB; cert-manager integration TBD
-#   - nginx.ingress.kubernetes.io/* annotations replaced by ALB equivalents
-#
-# For an external ALB in front of the cluster (available today), see ../alb/.
-
-# resource "stackit_application_load_balancer" "this" {
-#   project_id       = stackit_resourcemanager_project.this.project_id
-#   region           = var.region
-#   name             = "${var.cluster_name}-alb"
-#   plan_id          = "p10"
-#   external_address = "<STACKIT_PUBLIC_IP>"
-#
-#   listeners = [
-#     {
-#       name     = "https"
-#       port     = 443
-#       protocol = "PROTOCOL_HTTPS"
-#       https = {
-#         certificate_config = {
-#           certificate_ids = ["<STACKIT_CERT_ID>"]
-#         }
-#       }
-#       http = {
-#         hosts = [{
-#           host  = var.app_hostname
-#           rules = [{ target_pool = "ske-nodeport" }]
-#         }]
-#       }
-#     }
-#   ]
-#
-#   networks = [
-#     {
-#       network_id = "<SKE_NETWORK_ID>"
-#       role       = "ROLE_LISTENERS_AND_TARGETS"
-#     }
-#   ]
-#
-#   target_pools = [
-#     {
-#       name        = "ske-nodeport"
-#       target_port = 30080
-#       targets     = []
-#     }
-#   ]
-# }
+# This example sends Ingress traffic through Traefik behind a STACKIT Network
+# Load Balancer. For a STACKIT Application Load Balancer as the Ingress of an
+# SKE cluster, see examples/ske-alb-controller-waf-extension (SKE runs the ALB
+# controller) and examples/ske-alb-controller-waf-self-installed (the
+# configuration deploys the ALB controller into the cluster).
