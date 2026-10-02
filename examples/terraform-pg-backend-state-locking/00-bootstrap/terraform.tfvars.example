@@ -21,9 +21,10 @@ stackit_org_admin = "<your-admin@mail.com"
 
 # --- Service Account ---------------------------------------------------------
 
-# Path to the STACKIT service account key file.
+# Path to the STACKIT service account key file. Optional: unset falls back to
+# STACKIT_SERVICE_ACCOUNT_KEY_PATH, then to the credentials file.
 # Download: STACKIT portal > Service Accounts > Keys > Create key
-stackit_service_account_key_path = "./keys/service-account.json"
+# stackit_service_account_key_path = "./keys/service-account.json"
 
 # --- Region ------------------------------------------------------------------
 stackit_region = "eu01"
