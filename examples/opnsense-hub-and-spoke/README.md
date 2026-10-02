@@ -54,7 +54,7 @@ The hub deploys an **OPNsense firewall** as the central routing and security com
 ## Repository Structure
 
 ```
-hub-and-spoke-vpn/
+opnsense-hub-and-spoke/
 ├── 001-hub-project/           # Hub: OPNsense firewall, network area, routing tables
 │   ├── 000-backend.tf         # S3 remote state backend
 │   ├── 000-variables.tf       # Input variables (opnsense_machine_type, mgmt_ip_range)
@@ -95,9 +95,9 @@ hub-and-spoke-vpn/
 │   ├── user-init-linux.yml   # Cloud-init for Linux instances
 │   └── user-init-windows.yml # Cloud-init for Windows instances
 │
-├── terraform.tfvars.example  # Variable template for all projects
-└── Architecture/
-    └── hub-and-spoke.drawio  # Architecture diagram (draw.io)
+├── docs/                     # OPNsense first-boot setup, web UI access, automation, limitations
+│
+└── terraform.tfvars.example  # Variable template for all projects
 ```
 
 **File numbering convention:** Files within each project are numbered to make the dependency and deployment order explicit:
