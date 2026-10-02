@@ -27,7 +27,7 @@ terraform apply
 
 `terraform.tfvars` needs `stackit_project_id`. Without `stackit_service_account_key_path`, the provider falls back to `STACKIT_SERVICE_ACCOUNT_KEY_PATH`, then to its credentials file `$HOME/.stackit/credentials.json` ([provider authentication](https://registry.terraform.io/providers/stackitcloud/stackit/latest/docs)).
 
-The configuration creates an SKE cluster, a DNS zone below `runs.onstackit.cloud`, a public IP, ingress-nginx and an nginx demo deployment. The Ingress of the demo deployment accepts 10 requests per second from each client IP. The STACKIT load balancer passes the client IP to the pods only with the Proxy Protocol, so this limit depends on it.
+The configuration creates an SKE cluster, a DNS zone below `dns_zone_suffix` (default `runs.onstackit.cloud`), a public IP, ingress-nginx and an nginx demo deployment. The Ingress of the demo deployment accepts 10 requests per second from each client IP. The STACKIT load balancer passes the client IP to the pods only with the Proxy Protocol, so this limit depends on it.
 
 ---
 
