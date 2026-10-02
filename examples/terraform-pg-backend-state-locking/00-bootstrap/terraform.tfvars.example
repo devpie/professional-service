@@ -5,14 +5,13 @@
 # and fill in your values. Do NOT commit terraform.tfvars to version control.
 #
 # Alternatively, export variables as environment variables:
-#   export TF_VAR_stackit_organization_id="<uuid>"
+#   export TF_VAR_stackit_parent_container_id="<uuid>"
 # ---------------------------------------------------------------------------
 
 # --- STACKIT Identity --------------------------------------------------------
 
-# Your STACKIT Organization ID.
-# Portal: Organization > Settings > Organization ID
-stackit_organization_id = "<your-organization-id>"
+# Organization or folder the project is created in.
+stackit_parent_container_id = "<your-organization-or-folder-id>"
 
 ## Name of the bootstrapping project
 stackit_project_name = "00-bootstrap"

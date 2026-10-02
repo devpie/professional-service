@@ -17,8 +17,8 @@ variable "stackit_service_account_key_path" {
   type        = string
 }
 
-variable "stackit_organization_id" {
-  description = "STACKIT Organization ID (UUID). Found in the portal under Organization > Settings."
+variable "stackit_parent_container_id" {
+  description = "Container ID of the organization or folder the project is created in."
   type        = string
 }
 

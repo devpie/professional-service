@@ -13,7 +13,7 @@
 # limitations under the License.
 
 resource "stackit_resourcemanager_project" "this" {
-  parent_container_id = var.stackit_organization_id
+  parent_container_id = var.stackit_parent_container_id
   name                = var.stackit_project_name
   owner_email         = var.stackit_org_admin
 }
