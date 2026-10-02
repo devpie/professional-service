@@ -81,7 +81,7 @@ hub-and-spoke-vpn/
 │   ├── 010-provider.tf
 │   ├── 020-projects.tf
 │   ├── 030-network.tf
-│   ├── 040-servers.tf        # Two Windows server examples (standard + GPU-enabled)
+│   ├── 040-servers.tf        # Two Windows server examples (standard + CPU-bound)
 │   ├── 050-outputs.tf
 │   └── backend.conf.example
 │
@@ -236,10 +236,10 @@ Two servers showing different machine type profiles:
 
 Two servers showing Windows with different compute profiles:
 
-| Server             | Machine Type | Purpose                      |
-| ------------------ | ------------ | ---------------------------- |
-| `windows-server-a` | `m2i.8`      | Standard Windows workload    |
-| `windows-server-b` | `n2.14d.g1`  | GPU-enabled Windows workload |
+| Server             | Machine Type | Purpose                    |
+| ------------------ | ------------ | -------------------------- |
+| `windows-server-a` | `m2i.8`      | Standard Windows workload  |
+| `windows-server-b` | `c2i.4`      | CPU-bound Windows workload |
 
 ---
 

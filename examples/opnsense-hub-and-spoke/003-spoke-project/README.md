@@ -14,10 +14,10 @@ See the [top-level README](../README.md) for the full architecture and repositor
   the OPNsense LAN IP
 - Two example Windows Server instances via the generic [`modules/server`](../modules/server) module
 
-| Server             | Machine Type | Purpose                      |
-| ------------------ | ------------ | ---------------------------- |
-| `windows-server-a` | `m2i.8`      | Standard Windows workload    |
-| `windows-server-b` | `n2.14d.g1`  | GPU-enabled Windows workload |
+| Server             | Machine Type | Purpose                    |
+| ------------------ | ------------ | -------------------------- |
+| `windows-server-a` | `m2i.8`      | Standard Windows workload  |
+| `windows-server-b` | `c2i.4`      | CPU-bound Windows workload |
 
 ---
 

@@ -38,7 +38,7 @@ module "windows_server_b" {
   availability_zone      = var.default_zone
   name                   = "windows-server-b"
   image_id               = local.windows_image_id
-  machine_type           = "n2.14d.g1"
+  machine_type           = "c2i.4"
   disk_size              = 100
   disk_performance_class = "storage_premium_perf1"
   user_data              = templatefile("${path.module}/../cloud-init/user-init-windows.yml", {})
