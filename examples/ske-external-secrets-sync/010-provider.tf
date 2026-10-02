@@ -13,6 +13,8 @@
 # limitations under the License.
 
 terraform {
+  # The write-only data_json_wo in 050-random-secret.tf requires Terraform 1.11 or later.
+  required_version = ">= 1.11.0"
   required_providers {
     stackit = {
       source  = "stackitcloud/stackit"
