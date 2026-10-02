@@ -63,4 +63,4 @@ flag, but this is not recommended.
 [SUCCESS] 'terraform plan' was rejected while 'terraform apply' held the state lock.
 ```
 
-On the first run the backend reports `Already locked for workspace creation: default`, because no state exists yet. On later runs it reports `Workspace is already locked: default`.
+Until an apply has written the state, the backend reports `Already locked for workspace creation: default`. After that it reports `Workspace is already locked: default`.
