@@ -22,7 +22,7 @@ resource "random_string" "random" {
 resource "stackit_ske_cluster" "default" {
   project_id             = var.stackit_project_id
   name                   = "ske-${random_string.random.result}"
-  kubernetes_version_min = "1.31"
+  kubernetes_version_min = var.kubernetes_version_min
   node_pools = [
     {
       name               = "standard"
