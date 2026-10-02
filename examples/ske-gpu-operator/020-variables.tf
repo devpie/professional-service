@@ -17,8 +17,16 @@ variable "project_id" {
   description = "STACKIT project that holds the SKE cluster"
 }
 
+variable "stackit_region" {
+  type        = string
+  description = "STACKIT region"
+  default     = "eu01"
+}
+
 variable "stackit_service_account_key_path" {
-  default = ""
+  type        = string
+  description = "Path to the service account key file. Unset falls back to the STACKIT_SERVICE_ACCOUNT_KEY_PATH environment variable, then to that entry in the credentials file ($HOME/.stackit/credentials.json, or STACKIT_CREDENTIALS_PATH)."
+  default     = null
 }
 
 # Kubernetes 1.36 needs containerd 2.0, which SKE Ubuntu 22.04 nodes lack (SKE

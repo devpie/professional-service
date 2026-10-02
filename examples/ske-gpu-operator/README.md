@@ -16,7 +16,7 @@ terraform init
 terraform apply
 ```
 
-`terraform.tfvars` needs `project_id`.
+`terraform.tfvars` needs `project_id`. Without `stackit_service_account_key_path`, the provider falls back to `STACKIT_SERVICE_ACCOUNT_KEY_PATH`, then to its credentials file `$HOME/.stackit/credentials.json` ([provider authentication](https://registry.terraform.io/providers/stackitcloud/stackit/latest/docs)).
 
 ## Kubernetes version
 

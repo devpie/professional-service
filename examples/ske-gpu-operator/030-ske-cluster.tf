@@ -25,7 +25,7 @@ resource "stackit_ske_cluster" "this" {
       minimum            = "3"
       maximum            = "9"
       max_surge          = "3"
-      availability_zones = ["eu01-1", "eu01-2", "eu01-3"]
+      availability_zones = [for z in [1, 2, 3] : "${var.stackit_region}-${z}"]
       os_name            = "flatcar"
       volume_size        = 150
       volume_type        = "storage_premium_perf6"
@@ -37,7 +37,7 @@ resource "stackit_ske_cluster" "this" {
       minimum            = "1"
       maximum            = "1"
       max_surge          = "1"
-      availability_zones = ["eu01-2"]
+      availability_zones = ["${var.stackit_region}-2"]
       volume_size        = 150
       volume_type        = "storage_premium_perf6"
       labels = {
