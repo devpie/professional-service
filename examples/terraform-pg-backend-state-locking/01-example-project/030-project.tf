@@ -15,7 +15,7 @@
 resource "stackit_resourcemanager_project" "this" {
   parent_container_id = var.stackit_parent_container_id
   name                = var.stackit_project_name
-  owner_email         = var.stackit_org_admin
+  owner_email         = var.stackit_admin_email
 
   # A new project needs either this label or a networkArea label. PUBLIC keeps
   # the project outside a network area.

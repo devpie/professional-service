@@ -17,7 +17,7 @@ stackit_parent_container_id = "<your-organization-or-folder-id>"
 # stackit_project_name = "01-example-project"
 
 # Email address of the STACKIT user set as project owner.
-stackit_org_admin = "<your-admin@mail.com>"
+stackit_admin_email = "<your-admin@mail.com>"
 
 # --- Service Account ---------------------------------------------------------
 

@@ -29,7 +29,7 @@ variable "stackit_project_name" {
   default     = "00-bootstrap"
 }
 
-variable "stackit_org_admin" {
+variable "stackit_admin_email" {
   description = "Email address of the STACKIT user who will be set as project owner."
   type        = string
 }

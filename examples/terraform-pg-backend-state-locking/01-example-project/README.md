@@ -4,7 +4,7 @@ This module contains the core infrastructure configuration. It uses the `pg` bac
 
 ## Implementation Steps
 
-1. Copy `terraform.tfvars.example` to `terraform.tfvars` and set `stackit_parent_container_id` and `stackit_org_admin`:
+1. Copy `terraform.tfvars.example` to `terraform.tfvars` and set `stackit_parent_container_id` and `stackit_admin_email`:
 
    ```sh
    cp terraform.tfvars.example terraform.tfvars
