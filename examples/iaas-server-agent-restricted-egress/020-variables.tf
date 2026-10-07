@@ -104,6 +104,17 @@ variable "admin_cidr" {
 
 # --- outbound traffic of the target --------------------------------------
 
+variable "egress_mode" {
+  description = "\"restricted\" removes the two default egress rules from the target's security group, so only egress_rules allows outbound traffic. \"open\" keeps the default rules, so all outbound traffic passes; use it to record what the machine contacts. A change replaces the target's security group, network interface and server."
+  type        = string
+  default     = "restricted"
+
+  validation {
+    condition     = contains(["restricted", "open"], var.egress_mode)
+    error_message = "egress_mode must be \"restricted\" or \"open\"."
+  }
+}
+
 variable "egress_rules" {
   description = "Outbound allow-list of the target's security group. Each entry becomes one IPv4 egress rule. ip_range takes a CIDR or one of two names: \"nameservers\" stands for every address in var.nameservers, \"stackit\" for every IPv4 range in data.stackit_public_ip_ranges. Leave port_min and port_max unset for a protocol without ports, such as icmp. The default holds the destinations the STACKIT documentation names."
   type = map(object({
