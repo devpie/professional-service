@@ -179,3 +179,50 @@ variable "egress_rules" {
     error_message = "Every egress rule sets both port_min and port_max, or neither."
   }
 }
+
+# --- machines ------------------------------------------------------------
+
+variable "ssh_public_key" {
+  description = "Public SSH key installed on both machines for the default user of the image. Never the private key."
+  type        = string
+}
+
+variable "ssh_user" {
+  description = "User that receives ssh_public_key. STACKIT images create one default user per distribution; on Ubuntu it is \"ubuntu\". The outputs use the name in their SSH commands."
+  type        = string
+  default     = "ubuntu"
+}
+
+variable "image_id" {
+  description = "Image UUID of both machines. The cloud-init configuration is written for the public image \"Ubuntu 24.04\" (amd64): it relies on nftables and on sshd socket activation. Look the ID up with: stackit image list --all --project-id <existing project>"
+  type        = string
+
+  validation {
+    condition     = can(regex("^[0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12}$", var.image_id)) && var.image_id != "00000000-0000-0000-0000-000000000000"
+    error_message = "image_id must be the UUID of an image, not the placeholder from terraform.tfvars.example."
+  }
+}
+
+variable "availability_zone" {
+  description = "Availability zone of both machines."
+  type        = string
+  default     = "eu01-1"
+}
+
+variable "jump_machine_type" {
+  description = "Machine type of the jump host. t3i.1 has 1 vCPU and 1 GB RAM."
+  type        = string
+  default     = "t3i.1"
+}
+
+variable "target_machine_type" {
+  description = "Machine type of the target. c3i.1 has 1 vCPU and 2 GB RAM."
+  type        = string
+  default     = "c3i.1"
+}
+
+variable "boot_volume_size" {
+  description = "Size of each boot volume in GB."
+  type        = number
+  default     = 20
+}
