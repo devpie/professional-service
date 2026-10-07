@@ -1,0 +1,28 @@
+# STACKIT organization the network area is created in.
+stackit_org_id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+
+# Existing folder the project is created under, or the organization ID to
+# create it directly under the organization. Terraform does not create it.
+stackit_parent_container_id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+
+# An existing STACKIT user. A non-existent address fails with
+# 409 Conflict "subject is not found".
+stackit_admin_email = "firstname.lastname@example.com"
+
+# Path to the service account key file. Without it the provider reads the
+# STACKIT_SERVICE_ACCOUNT_KEY_PATH environment variable or the credentials file.
+# stackit_service_account_key_path = "/path/to/stackit-sa.json"
+
+# Only this IPv4 range reaches the jump host, on TCP 2222.
+admin_cidr = "198.51.100.10/32"
+
+# Public half of your SSH key - never the private key.
+ssh_public_key = "ssh-ed25519 AAAA... you@example.com"
+
+# UUID of the public image "Ubuntu 24.04" (amd64):
+#   stackit image list --all --project-id <existing-project-id>
+image_id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+
+# "restricted" (default) removes the default egress rules of the target.
+# "open" keeps them, see "Measure what a VM needs" in the README.
+# egress_mode = "open"

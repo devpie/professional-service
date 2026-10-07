@@ -15,11 +15,21 @@
 variable "stackit_org_id" {
   description = "The STACKIT organization ID in which the network area is created."
   type        = string
+
+  validation {
+    condition     = can(regex("^[0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12}$", var.stackit_org_id))
+    error_message = "stackit_org_id must be the UUID of an organization, not the placeholder from terraform.tfvars.example."
+  }
 }
 
 variable "stackit_parent_container_id" {
   description = "Existing folder ID the project is created under, or the organization ID to create it directly under the organization. This example does not create the folder."
   type        = string
+
+  validation {
+    condition     = !startswith(var.stackit_parent_container_id, "xxxxxxxx-")
+    error_message = "stackit_parent_container_id is still the placeholder from terraform.tfvars.example."
+  }
 }
 
 variable "stackit_admin_email" {
@@ -198,7 +208,7 @@ variable "image_id" {
   type        = string
 
   validation {
-    condition     = can(regex("^[0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12}$", var.image_id)) && var.image_id != "00000000-0000-0000-0000-000000000000"
+    condition     = can(regex("^[0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12}$", var.image_id))
     error_message = "image_id must be the UUID of an image, not the placeholder from terraform.tfvars.example."
   }
 }
