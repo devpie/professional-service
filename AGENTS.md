@@ -118,6 +118,8 @@ Fetch only the files relevant to the task. A typical example contains
   Upload a custom VM image to STACKIT using Terraform
 - **`iaas-k3s-self-managed`** `[iaas, k3s, kubernetes, self-managed]`  
   Deploys a 6-node k3s + Cilium cluster on STACKIT VMs and validates: L4 NLB, L7 ALB, CSI block storage, Cilium NetworkPolicy, and egress connectivity
+- **`iaas-server-agent-restricted-egress`** `[iaas, compute, networking, sna, security-group, egress, cloud-init, server-agent, jump-host, ssh]`  
+  Deploys a Linux VM whose security group allows outbound traffic to an allow-list only, with the STACKIT Server Agent switched on, and a jump host as the only way to reach it over SSH. The example lists the outbound rules the STACKIT documentation names for cloud-init and the Server Agent, removes the default egress rules that Terraform cannot manage, and records every destination the VM contacts, so you can check and extend the list
 - **`iaas-volume-encryption`** `[iaas, volume, encryption, kms, block-storage]`  
   KMS & IaaS Resources to deploy a encrypted Block Storage Volume
 - **`iaas-windows-byol-stackit-migration`** `[iaas, windows, byol, migration, compute]`  
