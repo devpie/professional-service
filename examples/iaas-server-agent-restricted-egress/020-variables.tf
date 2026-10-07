@@ -38,3 +38,54 @@ variable "stackit_service_account_key_path" {
   type        = string
   default     = null
 }
+
+# --- naming --------------------------------------------------------------
+
+variable "project_name" {
+  description = "Display name of the project this example creates."
+  type        = string
+  default     = "server-agent-egress"
+}
+
+variable "network_area_name" {
+  description = "Name of the STACKIT Network Area this example creates."
+  type        = string
+  default     = "server-agent-egress"
+}
+
+variable "name_prefix" {
+  description = "Prefix for the names of the network, the security groups, the network interfaces, the key pair and the two machines."
+  type        = string
+  default     = "agent-egress"
+}
+
+# --- addressing ----------------------------------------------------------
+
+variable "network_area_range" {
+  description = "IPv4 range of the network area."
+  type        = string
+  default     = "10.80.0.0/16"
+}
+
+variable "network_area_transfer_network" {
+  description = "Transfer network of the network area. It must not overlap with network_area_range."
+  type        = string
+  default     = "172.30.0.0/16"
+}
+
+variable "network_prefix" {
+  description = "Prefix of the network that holds both machines. It must sit inside network_area_range."
+  type        = string
+  default     = "10.80.1.0/24"
+}
+
+variable "nameservers" {
+  description = "IPv4 nameservers of the network. The egress rules with ip_range = \"nameservers\" allow DNS to exactly these addresses."
+  type        = list(string)
+  default     = ["1.1.1.1", "9.9.9.9"]
+
+  validation {
+    condition     = length(var.nameservers) > 0 && alltrue([for ns in var.nameservers : !strcontains(ns, ":") && can(cidrhost("${ns}/32", 0))])
+    error_message = "nameservers needs at least one entry, and every entry must be an IPv4 address without a prefix length."
+  }
+}
