@@ -89,3 +89,82 @@ variable "nameservers" {
     error_message = "nameservers needs at least one entry, and every entry must be an IPv4 address without a prefix length."
   }
 }
+
+# --- access --------------------------------------------------------------
+
+variable "admin_cidr" {
+  description = "IPv4 source range that reaches the jump host on TCP 2222, for example your public IP with a /32 suffix."
+  type        = string
+
+  validation {
+    condition     = !strcontains(var.admin_cidr, ":") && can(cidrhost(var.admin_cidr, 0))
+    error_message = "admin_cidr must be an IPv4 range in CIDR notation, for example 198.51.100.10/32."
+  }
+}
+
+# --- outbound traffic of the target --------------------------------------
+
+variable "egress_rules" {
+  description = "Outbound allow-list of the target's security group. Each entry becomes one IPv4 egress rule. ip_range takes a CIDR or one of two names: \"nameservers\" stands for every address in var.nameservers, \"stackit\" for every IPv4 range in data.stackit_public_ip_ranges. Leave port_min and port_max unset for a protocol without ports, such as icmp. The default holds the destinations the STACKIT documentation names."
+  type = map(object({
+    description = string
+    protocol    = string
+    port_min    = optional(number)
+    port_max    = optional(number)
+    ip_range    = string
+  }))
+  default = {
+    metadata = {
+      description = "Metadata service: cloud-init reads user data, metadata and vendor data; download of the Server Agent package"
+      protocol    = "tcp"
+      port_min    = 80
+      port_max    = 80
+      ip_range    = "169.254.169.254/32"
+    }
+    dns-udp = {
+      description = "DNS: resolves the host names of the HTTPS destinations"
+      protocol    = "udp"
+      port_min    = 53
+      port_max    = 53
+      ip_range    = "nameservers"
+    }
+    dns-tcp = {
+      description = "DNS over TCP: answers that do not fit into a UDP datagram"
+      protocol    = "tcp"
+      port_min    = 53
+      port_max    = 53
+      ip_range    = "nameservers"
+    }
+    https-stackit = {
+      description = "HTTPS to the STACKIT public IP ranges: signature check of the Server Agent package on Object Storage"
+      protocol    = "tcp"
+      port_min    = 443
+      port_max    = 443
+      ip_range    = "stackit"
+    }
+  }
+
+  validation {
+    condition = alltrue([
+      for rule in values(var.egress_rules) :
+      contains(["nameservers", "stackit"], rule.ip_range) || (!strcontains(rule.ip_range, ":") && can(cidrhost(rule.ip_range, 0)))
+    ])
+    error_message = "ip_range of every egress rule must be an IPv4 range in CIDR notation, \"nameservers\" or \"stackit\"."
+  }
+
+  validation {
+    condition = alltrue([
+      for rule in values(var.egress_rules) :
+      length(rule.description) >= 1 && length(rule.description) <= 127
+    ])
+    error_message = "description of every egress rule must have 1 to 127 characters. The STACKIT provider rejects longer rule descriptions."
+  }
+
+  validation {
+    condition = alltrue([
+      for rule in values(var.egress_rules) :
+      (rule.port_min == null) == (rule.port_max == null)
+    ])
+    error_message = "Every egress rule sets both port_min and port_max, or neither."
+  }
+}
