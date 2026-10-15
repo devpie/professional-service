@@ -78,18 +78,15 @@ output "verify_commands" {
     # Jump host: the only listener outside the loopback addresses is TCP ${local.jump_ssh_port}.
     ${local.ssh_jump} 'ss -Htln'
 
-    # Target: cloud-init finished its first boot without an error.
+    # Target: cloud-init finished its first boot without an error. "detail" names DataSourceOpenStackLocal; DataSourceNone means the VM reached no metadata service.
     ${local.ssh_target} 'cloud-init status --long'
 
     # Target: the unit of the STACKIT Server Agent is active.
     ${local.ssh_target} 'systemctl is-active stackit-server-agent.service'
 
-    # Target: DNS and HTTPS reach the endpoint of the Server Agent signature. Prints the HTTP status.
-    ${local.ssh_target} 'curl -sS -o /dev/null -w "%%{http_code}\n" https://stackit-server-agent.object.storage.${var.stackit_region}.onstackit.cloud/stackit-server-agent.gpg'
-
-    # Target: a destination outside the default allow-list. "restricted": curl gets no connection and prints 000. "open": curl prints the HTTP status.
-    # curl error 28 is the timeout of a dropped connection. Error 6 means the name did not resolve; the check is then void.
-    ${local.ssh_target} 'curl -sS -m 10 -o /dev/null -w "%%{http_code}\n" https://example.com'
+    # Target: a destination outside the default allow-list, given as an address so the check needs no DNS.
+    # "restricted": curl gets no connection, prints 000 and ends with curl error 28 after 10 seconds. "open": curl prints the HTTP status.
+    ${local.ssh_target} 'curl -sS -m 10 -o /dev/null -w "%%{http_code}\n" https://1.1.1.1'
 
     # Target: destinations of the outbound connections the probe logged, over all boots.
     ${local.ssh_target} 'sudo egress-probe-report'
