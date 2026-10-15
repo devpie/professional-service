@@ -82,7 +82,7 @@ output "verify_commands" {
     # Target: DNS and HTTPS reach the endpoint of the Server Agent signature. Prints the HTTP status.
     ${local.ssh_target} 'curl -sS -o /dev/null -w "%%{http_code}\n" https://stackit-server-agent.object.storage.${var.stackit_region}.onstackit.cloud/stackit-server-agent.gpg'
 
-    # Target: destinations of all outbound connections since the first boot.
+    # Target: destinations of the outbound connections the probe logged, over all boots.
     ${local.ssh_target} 'sudo egress-probe-report'
 
     # Rules of both security groups as the IaaS API reports them.

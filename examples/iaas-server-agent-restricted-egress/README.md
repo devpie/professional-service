@@ -2,7 +2,7 @@
 
 # Restricted Egress for a VM with cloud-init and the STACKIT Server Agent
 
-Deploys a Linux VM whose security group allows outbound traffic to an allow-list only, with the STACKIT Server Agent switched on, and a jump host as the only way to reach it over SSH. The example lists the outbound rules the STACKIT documentation names for cloud-init and the Server Agent, removes the default egress rules that Terraform cannot manage, and records every destination the VM contacts, so you can check and extend the list.
+Deploys a Linux VM whose security group allows outbound traffic to an allow-list only, with the STACKIT Server Agent switched on, and a jump host as the only way to reach it over SSH. The example lists the outbound rules the STACKIT documentation names for cloud-init and the Server Agent, removes the default egress rules that Terraform cannot manage, and adds a probe that logs the destination of every new outbound connection once cloud-init has loaded it, so you can check and extend the list.
 
 ## What the example shows
 
@@ -14,7 +14,7 @@ The example creates:
 
 - a STACKIT Network Area (SNA) with its regional configuration, a project attached to it and one network
 - a **jump host** with a public IP, whose security group admits TCP 2222 from `admin_cidr` and whose sshd listens on that port
-- a **target** without a public IP, with the Server Agent, an egress allow-list and a probe that logs every outbound connection
+- a **target** without a public IP, with the Server Agent, an egress allow-list and a probe that logs every new outbound connection once cloud-init has loaded it
 - a step that deletes the two default egress rules of the target's security group through the IaaS API
 
 ## Architecture
