@@ -158,7 +158,7 @@ variable "egress_mode" {
 }
 
 variable "egress_rules" {
-  description = "Outbound allow-list of the target's security group. Each entry becomes one IPv4 egress rule per address range. ip_range takes a CIDR or one of two names: \"nameservers\" stands for every address in var.nameservers, \"stackit\" for every IPv4 range in data.stackit_public_ip_ranges. Leave port_min and port_max unset for a protocol without ports, such as icmp. The default holds the destinations the STACKIT documentation names."
+  description = "Outbound allow-list of the target's security group. Each entry becomes one IPv4 egress rule per address range. ip_range takes a CIDR or one of two names: \"nameservers\" stands for every address in var.nameservers, \"stackit\" for every IPv4 range in data.stackit_public_ip_ranges. Leave port_min and port_max unset for a protocol without ports, such as icmp. The default holds the two rules cloud-init, the Server Agent and Run Command need: DHCP and the metadata service."
   type = map(object({
     description = string
     protocol    = string
@@ -167,33 +167,19 @@ variable "egress_rules" {
     ip_range    = string
   }))
   default = {
+    dhcp = {
+      description = "DHCP: lease and renewal of the IPv4 address of the interface"
+      protocol    = "udp"
+      port_min    = 67
+      port_max    = 67
+      ip_range    = "0.0.0.0/0"
+    }
     metadata = {
-      description = "Metadata service: cloud-init reads user data, metadata and vendor data; download of the Server Agent package"
+      description = "Metadata service: cloud-init data, Server Agent package, traffic of the Server Agent and the monitoring agent"
       protocol    = "tcp"
       port_min    = 80
       port_max    = 80
       ip_range    = "169.254.169.254/32"
-    }
-    dns-udp = {
-      description = "DNS: resolves the host names of the HTTPS destinations"
-      protocol    = "udp"
-      port_min    = 53
-      port_max    = 53
-      ip_range    = "nameservers"
-    }
-    dns-tcp = {
-      description = "DNS over TCP: answers that do not fit into a UDP datagram"
-      protocol    = "tcp"
-      port_min    = 53
-      port_max    = 53
-      ip_range    = "nameservers"
-    }
-    https-stackit = {
-      description = "HTTPS to the STACKIT public IP ranges: signature check of the Server Agent package on Object Storage"
-      protocol    = "tcp"
-      port_min    = 443
-      port_max    = 443
-      ip_range    = "stackit"
     }
   }
 

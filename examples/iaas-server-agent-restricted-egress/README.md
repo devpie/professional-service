@@ -2,11 +2,11 @@
 
 # Restricted Egress for a VM with cloud-init and the STACKIT Server Agent
 
-Deploys a Linux VM whose security group allows outbound traffic to an allow-list only, with the STACKIT Server Agent switched on, and a jump host as the only way to reach it over SSH. The example lists the outbound rules the STACKIT documentation names for cloud-init and the Server Agent, removes the default egress rules that Terraform cannot manage, and adds a probe that logs the destination of every new outbound connection once cloud-init has loaded it, so you can check and extend the list.
+Deploys a Linux VM whose security group allows outbound traffic to an allow-list only, with the STACKIT Server Agent switched on, and a jump host as the only way to reach it over SSH. The example allows the two outbound destinations that cloud-init, the Server Agent and Run Command need, removes the default egress rules that Terraform cannot manage, and adds a probe that logs the destination of every new outbound connection once cloud-init has loaded it, so you can check and extend the list.
 
 ## What the example shows
 
-A security group rule only allows. Every new security group starts with two rules that allow all outbound traffic, so an egress rule of your own restricts nothing until those two are gone. This example removes them before the VM boots for the first time. The first boot is the one that matters: cloud-init runs then, and the platform installs the Server Agent then.
+A security group rule only allows. Every new security group starts with two rules that allow all outbound traffic, so an egress rule of your own restricts nothing until those two are gone. This example removes them before the VM boots for the first time. Without them the group also drops DHCP, so the allow-list has to allow it. The first boot is the one that matters: cloud-init runs then, and the platform installs the Server Agent then.
 
 **cloud-init and the Server Agent are two different things.** [cloud-init](https://docs.cloud-init.io/en/latest/explanation/boot.html) is part of the image. It runs at boot and reads metadata, user data and vendor data from the [metadata service](https://docs.stackit.cloud/products/compute-engine/server/basics/maintenance/) at `http://169.254.169.254`. The [STACKIT Server Agent](https://docs.stackit.cloud/products/compute-engine/server-agent/basics/introduction-to-server-agent/) is a service of its own. The platform [installs it during the first boot through vendor data](https://docs.stackit.cloud/products/compute-engine/server-agent/getting-started/installing-server-agent-api/), and [Run Command](https://docs.stackit.cloud/products/compute-engine/run-command/) and Server Update Management use it afterwards.
 
@@ -30,15 +30,13 @@ flowchart LR
         target["Target\nno public IP\nServer Agent\negress probe"]
     end
 
+    dhcp(["DHCP server\nof the network"])
     metadata(["Metadata service\n169.254.169.254"])
-    dns(["Nameservers\n1.1.1.1, 9.9.9.9"])
-    stackit(["STACKIT public IP ranges\nObject Storage"])
 
     admin -->|"TCP 2222"| jump
     jump -->|"TCP 22"| target
+    target -->|"UDP 67"| dhcp
     target -->|"TCP 80"| metadata
-    target -->|"UDP 53, TCP 53"| dns
-    target -->|"TCP 443"| stackit
 ```
 
 Each machine has its own security group, and its network interface carries that group and no other. Terraform adds one ingress rule to each group:
@@ -56,19 +54,18 @@ The jump host is not the subject of the egress test. Its security group keeps th
 
 ## Egress rules of the target
 
-`egress_rules` holds every egress rule this example adds to the target's security group. Its default holds the destinations the STACKIT documentation names:
+`egress_rules` holds every egress rule this example adds to the target's security group. Its default holds the two rules that cloud-init, the Server Agent and Run Command need:
 
-| Key                  | Destination                                    | Protocol and port | What needs it                                                                                                                                         | Source                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| -------------------- | ---------------------------------------------- | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `metadata`           | `169.254.169.254/32`                           | TCP 80            | cloud-init reads metadata, user data and vendor data. The Server Agent package comes from `http://169.254.169.254/stackit/v1/server-agent/amd64/deb`. | [cloud-init boot stages](https://docs.cloud-init.io/en/latest/explanation/boot.html) for the stages, [Windows Server FAQ](https://docs.stackit.cloud/products/compute-engine/windows-server/faq/) for the address as an outbound rule of a custom security group, [Install the Server Agent on a running server](https://docs.stackit.cloud/products/compute-engine/server-agent/getting-started/installing-server-agent-existing-server/) for the package URL |
-| `dns-udp`, `dns-tcp` | every address in `nameservers`                 | UDP 53, TCP 53    | Name resolution for the HTTPS endpoint below.                                                                                                         | [Windows Server FAQ](https://docs.stackit.cloud/products/compute-engine/windows-server/faq/), which lists the metadata service and DNS as outbound rules of a custom security group                                                                                                                                                                                                                                                                            |
-| `https-stackit`      | every IPv4 range of `stackit_public_ip_ranges` | TCP 443           | Signature check of the Server Agent package. Key and signature come from `https://stackit-server-agent.object.storage.<region>.onstackit.cloud`.      | [Install the Server Agent on a running server](https://docs.stackit.cloud/products/compute-engine/server-agent/getting-started/installing-server-agent-existing-server/)                                                                                                                                                                                                                                                                                       |
+| Key        | Destination          | Protocol and port | What needs it                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| ---------- | -------------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `dhcp`     | `0.0.0.0/0`          | UDP 67            | The interface gets its IPv4 address, the gateway and the nameservers through DHCP. The first request goes to the broadcast address, the renewal of the lease to the DHCP server of the network.                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `metadata` | `169.254.169.254/32` | TCP 80            | [cloud-init reads metadata, user data and vendor data](https://docs.cloud-init.io/en/latest/explanation/boot.html). The vendor data installs the Server Agent from `http://169.254.169.254/stackit/v1/server-agent/amd64/deb` ([Install the Server Agent on a running server](https://docs.stackit.cloud/products/compute-engine/server-agent/getting-started/installing-server-agent-existing-server/)). The Server Agent and `stackit-server-monitoring-agent`, which comes with it, open connections to this address only. Run Command needs no further rule: the agent receives its commands through the metadata service. |
 
-`ip_range` of a rule takes a CIDR or one of two names. `nameservers` stands for every address in the variable `nameservers`, which also configures the network. `stackit` stands for every IPv4 range the data source `stackit_public_ip_ranges` returns. A security group rule takes one range, so Terraform creates one rule per range.
+The default egress rules of a new security group allow DHCP like all other traffic. Once they are gone, the group drops DHCP as well, unless a rule allows it. Without the rule `dhcp` the interface gets no IPv4 address. cloud-init then finds no metadata service and falls back to `DataSourceNone`, the platform does not install the Server Agent, and Run Command answers `404 agent not found`.
 
-The Object Storage endpoint of the signature check lies inside the STACKIT public IP ranges. The API hosts `iaas.api.stackit.cloud` and `run-command.api.stackit.cloud` resolve to an address outside them, so the rule `https-stackit` does not cover them. [`scripts/check-stackit-ip.sh`](../../scripts/check-stackit-ip.sh) tells for any address whether it belongs to the ranges.
+`ip_range` of a rule takes a CIDR or one of two names. `nameservers` stands for every address in the variable `nameservers`, which also configures the network. `stackit` stands for every IPv4 range the data source `stackit_public_ip_ranges` returns. A security group rule takes one range, so Terraform creates one rule per range. [`scripts/check-stackit-ip.sh`](../../scripts/check-stackit-ip.sh) tells for any address whether it belongs to the ranges.
 
-The list has no rule for NTP (UDP 123) and none for the package mirrors of the image. It has no IPv6 rule; the network has no IPv6 prefix. Add what your machine needs through `egress_rules`. The section [Measure what a VM needs](#measure-what-a-vm-needs) shows how to find it.
+The default has no rule for DNS, NTP or the package mirrors of the image. Name resolution, time synchronisation and package updates of the operating system fail on the target until you add rules for them; `systemd-timesyncd` does not synchronise the clock. The list has no IPv6 rule; the network has no IPv6 prefix. Add what your machine needs through `egress_rules`. The section [Measure what a VM needs](#measure-what-a-vm-needs) shows how to find it.
 
 ## How the default egress rules are removed
 
@@ -205,7 +202,7 @@ The key pair belongs to the service account that runs Terraform, not to the proj
 ssh -p 2222 ubuntu@<jump host> 'ss -Htln'
 ```
 
-**cloud-init on the target.** `status: done` means the first boot finished. `cloud-init status` exits with a status other than 0 when a stage reported an error. `cloud-init status --wait` blocks until cloud-init finished:
+**cloud-init on the target.** `status: done` means the first boot finished. `cloud-init status` exits with a status other than 0 when a stage reported an error. `cloud-init status --wait` blocks until cloud-init finished. The line `detail` names `DataSourceOpenStackLocal`. `DataSourceNone` there means that cloud-init reached no metadata service, for example because the rule `dhcp` is missing:
 
 ```bash
 ssh -J ubuntu@<jump host>:2222 ubuntu@<target> 'cloud-init status --long'
@@ -217,18 +214,11 @@ ssh -J ubuntu@<jump host>:2222 ubuntu@<target> 'cloud-init status --long'
 ssh -J ubuntu@<jump host>:2222 ubuntu@<target> 'systemctl is-active stackit-server-agent.service'
 ```
 
-**DNS and HTTPS from the target.** The request goes to the endpoint of the signature check. An HTTP status in the output shows that the DNS rules and the HTTPS rule work. A timeout shows a missing rule:
+**A destination outside the allow-list.** This check shows that the restriction is in effect. The request goes to the address `1.1.1.1` directly, so it needs no DNS, and no rule of the default allow-list covers it. With `egress_mode = "restricted"` curl gets no connection: it prints `000` and ends with `curl: (28)`, the timeout of a connection that got no answer, after 10 seconds. With `egress_mode = "open"` curl prints an HTTP status. An HTTP status on a restricted target shows that a rule allows the connection, for example a default egress rule that is still in place:
 
 ```bash
 ssh -J ubuntu@<jump host>:2222 ubuntu@<target> \
-  'curl -sS -o /dev/null -w "%{http_code}\n" https://stackit-server-agent.object.storage.eu01.onstackit.cloud/stackit-server-agent.gpg'
-```
-
-**A destination outside the allow-list.** This check shows that the restriction is in effect. The name `example.com` resolves through the DNS rules, and its addresses lie outside the STACKIT public IP ranges, so no rule of the default allow-list covers the request. With `egress_mode = "restricted"` curl gets no connection: it prints `000` and ends with an error after at most 10 seconds. `curl: (28)` is the timeout of a connection that got no answer. `curl: (6)` means that the name did not resolve, and the check then says nothing about the restriction. With `egress_mode = "open"` curl prints an HTTP status. An HTTP status on a restricted target shows that a rule allows the connection, for example a default egress rule that is still in place:
-
-```bash
-ssh -J ubuntu@<jump host>:2222 ubuntu@<target> \
-  'curl -sS -m 10 -o /dev/null -w "%{http_code}\n" https://example.com'
+  'curl -sS -m 10 -o /dev/null -w "%{http_code}\n" https://1.1.1.1'
 ```
 
 **Rules of both security groups.** The target's group lists the rule for TCP 22 from the jump host's group and the allow-list, and no egress rule without a protocol. The jump host's group lists the rule for TCP 2222 from `admin_cidr` and the two default egress rules:
@@ -284,7 +274,7 @@ ssh -J ubuntu@<jump host>:2222 ubuntu@<target> 'sudo egress-probe-report'
 COUNT  DESTINATION                              PROTO  PORT   USER
 ```
 
-`COUNT` is the number of new connections, `USER` the owner of the socket. Arguments go to `journalctl`: `sudo egress-probe-report --boot` covers the current boot only.
+`COUNT` is the number of new connections, `USER` the owner of the socket. Arguments go to `journalctl`: `sudo egress-probe-report --boot` covers the current boot only. The report lists neither DHCP nor the requests cloud-init sends before the probe loads. The rules `dhcp` and `metadata` cover both.
 
 The user data of the target is this boothook and no cloud-config. cloud-init [merges the cloud-config of the user over the cloud-config of the vendor data](https://docs.cloud-init.io/en/latest/explanation/vendordata.html). A boothook merges with nothing, so the user data of this example overrides nothing the platform delivers as vendor data.
 
@@ -302,7 +292,14 @@ To find the rules a machine needs:
 
    ```hcl
    egress_rules = {
-     # ... the four default entries from 020-variables.tf ...
+     # ... the two default entries from 020-variables.tf ...
+     dns-udp = {
+       description = "DNS: name resolution through the nameservers of the network"
+       protocol    = "udp"
+       port_min    = 53
+       port_max    = 53
+       ip_range    = "nameservers"
+     }
      ntp = {
        description = "NTP: time synchronisation"
        protocol    = "udp"
