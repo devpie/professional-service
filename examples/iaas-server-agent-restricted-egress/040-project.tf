@@ -24,8 +24,9 @@ resource "stackit_resourcemanager_project" "this" {
   }
 
   # Terraform destroys in reverse order. Without this dependency it deletes the
-  # regional configuration and the project in parallel, and the API rejects the
-  # deletion of a regional configuration that still has active projects.
+  # regional configuration and the project in parallel, and the provider
+  # refuses to delete a regional configuration while the network area still
+  # has active projects.
   depends_on = [stackit_network_area_region.this]
 }
 
