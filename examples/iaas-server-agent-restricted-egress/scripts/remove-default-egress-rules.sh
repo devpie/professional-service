@@ -18,9 +18,9 @@
 # STACKIT adds two rules to every new security group: one allows all outbound
 # IPv4 traffic, the other all outbound IPv6 traffic. The rules of a security
 # group only allow, so an allow-list has no effect while these two exist. The
-# Terraform provider neither creates nor shows them. This script reads the
-# group through the IaaS API, deletes the two rules and then checks that no
-# egress rule is left that allows all traffic.
+# Terraform provider neither creates nor shows them. This script lists the
+# rules of the group through the IaaS API, deletes the two rules and then
+# checks that no egress rule is left that allows all traffic.
 #
 # A default rule is an egress rule without protocol, port range, IP range and
 # remote security group. The script deletes nothing else and never touches an
@@ -30,7 +30,7 @@
 #   SECURITY_GROUP_URL    URL of the group in the IaaS API:
 #                         https://iaas.api.stackit.cloud/v2/projects/<project>/regions/<region>/security-groups/<id>
 #   STACKIT_ACCESS_TOKEN  access token of an identity that is allowed to edit the group
-#   VERIFY_ATTEMPTS       optional: how often the final check reads the group (default 12)
+#   VERIFY_ATTEMPTS       optional: how often the final check lists the rules (default 12)
 #   VERIFY_DELAY_SECONDS  optional: pause between two checks (default 5)
 #
 # Requires bash, jq and curl 7.55.0 or later.
@@ -55,7 +55,7 @@ done
 # An egress rule without protocol, port range and remote security group matches
 # every packet to its IP range.
 readonly unrestricted_egress='
-  .rules[]
+  .items[]
   | select(.direction == "egress")
   | select((.protocol // {}) | (.name == null and .number == null))
   | select(.portRange == null and .icmpParameters == null)
@@ -83,16 +83,19 @@ api() {
     "$@" "$url"
 }
 
-read_group() {
-  local group
-  group=$(api GET "$SECURITY_GROUP_URL") || fail "cannot read the security group at $SECURITY_GROUP_URL"
-  jq -e '(.rules | type) == "array"' >/dev/null 2>&1 <<<"$group" ||
+# The rules have an endpoint of their own. The API specification requires the
+# field "items" in its answer. In the group object the field "rules" is
+# optional, so a group without rules can come without it.
+read_rules() {
+  local rules
+  rules=$(api GET "$SECURITY_GROUP_URL/rules") || fail "cannot read the rules of the security group at $SECURITY_GROUP_URL"
+  jq -e '(.items | type) == "array"' >/dev/null 2>&1 <<<"$rules" ||
     fail "the answer of the IaaS API contains no list of rules"
-  printf '%s' "$group"
+  printf '%s' "$rules"
 }
 
-group=$(read_group)
-to_delete=$(jq -r "$default_rule_ids" <<<"$group")
+rules=$(read_rules)
+to_delete=$(jq -r "$default_rule_ids" <<<"$rules")
 
 deleted=0
 while IFS= read -r rule_id; do
@@ -105,19 +108,19 @@ while IFS= read -r rule_id; do
   deleted=$((deleted + 1))
 done <<<"$to_delete"
 
-# The API accepts a deletion before the rule is gone, so the check reads the
-# group until no default rule is listed any more.
+# The API accepts a deletion before the rule is gone, so the check lists the
+# rules until no default rule is among them any more.
 attempt=1
 while true; do
-  group=$(read_group)
+  rules=$(read_rules)
 
-  foreign=$(jq -r "[$foreign_rule_ids] | join(\" \")" <<<"$group")
+  foreign=$(jq -r "[$foreign_rule_ids] | join(\" \")" <<<"$rules")
   [[ -z "$foreign" ]] ||
     fail "the group has an egress rule that allows all traffic and is not a default rule: $foreign. Delete it, then run again."
 
-  pending=$(jq -r "[$default_rule_ids] | join(\" \")" <<<"$group")
+  pending=$(jq -r "[$default_rule_ids] | join(\" \")" <<<"$rules")
   if [[ -z "$pending" ]]; then
-    remaining=$(jq -r '[.rules[] | select(.direction == "egress")] | length' <<<"$group")
+    remaining=$(jq -r '[.items[] | select(.direction == "egress")] | length' <<<"$rules")
     echo "deleted $deleted default egress rule(s); no egress rule that allows all traffic is left, $remaining egress rule(s) remain"
     exit 0
   fi
