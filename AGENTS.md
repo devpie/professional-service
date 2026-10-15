@@ -119,7 +119,7 @@ Fetch only the files relevant to the task. A typical example contains
 - **`iaas-k3s-self-managed`** `[iaas, k3s, kubernetes, self-managed]`  
   Deploys a 6-node k3s + Cilium cluster on STACKIT VMs and validates: L4 NLB, L7 ALB, CSI block storage, Cilium NetworkPolicy, and egress connectivity
 - **`iaas-server-agent-restricted-egress`** `[iaas, compute, networking, sna, security-group, egress, cloud-init, server-agent, jump-host, ssh]`  
-  Deploys a Linux VM whose security group allows outbound traffic to an allow-list only, with the STACKIT Server Agent switched on, and a jump host as the only way to reach it over SSH. The example allows the two outbound destinations that cloud-init, the Server Agent and Run Command need, removes the default egress rules that Terraform cannot manage, and adds a probe that logs the destination of every new outbound connection once cloud-init has loaded it, so you can check and extend the list
+  Deploys a Linux VM whose security group allows outbound traffic to an allow-list only, with the STACKIT Server Agent switched on, and a jump host as the only way to reach it over SSH. The example adds the two egress rules that cloud-init, the Server Agent and Run Command need: DHCP and the metadata service. It removes the default egress rules, which Terraform cannot manage. From the moment cloud-init loads it, a probe logs the destination of every new outbound connection, so you can check and extend the list
 - **`iaas-volume-encryption`** `[iaas, volume, encryption, kms, block-storage]`  
   KMS & IaaS Resources to deploy a encrypted Block Storage Volume
 - **`iaas-windows-byol-stackit-migration`** `[iaas, windows, byol, migration, compute]`  
