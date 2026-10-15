@@ -210,7 +210,7 @@ ssh -J ubuntu@<jump host>:2222 ubuntu@<target> \
 stackit security-group rule list --project-id <project-id> --security-group-id <group-id>
 ```
 
-If a list also shows an ingress rule whose remote security group is the group itself, the platform added it. The [security group concepts](https://docs.stackit.cloud/products/network/core-networking/security-groups/basics/concepts/) describe such a rule for a new group. It admits only members of that group, and each group has one member.
+If a list also shows an ingress rule whose remote security group is the group itself, the platform added it. The [security group concepts](https://docs.stackit.cloud/products/network/core-networking/security-groups/basics/concepts/) state that a new group allows traffic from members of the same group. Such a rule admits only members of that group, and each group has one member.
 
 **Run Command.** Run Command is the test for the running Server Agent: the platform sends a script, and the agent on the VM runs it. Enable the service once per project, [in the portal](https://docs.stackit.cloud/products/compute-engine/run-command/getting-started/enable-run-command-service/) under _Computing > Server > your server > Command > Templates > Enable Commands_ or [through the API](https://docs.stackit.cloud/products/compute-engine/run-command/how-tos/api-enable-the-run-command-service/):
 
