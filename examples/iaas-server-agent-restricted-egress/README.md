@@ -16,6 +16,7 @@ The example creates:
 - a **jump host** with a public IP, whose security group admits TCP 2222 from `admin_cidr` and whose sshd listens on that port
 - a **target** without a public IP, with the Server Agent, an egress allow-list and a probe that logs every new outbound connection once cloud-init has loaded it
 - a step that deletes the two default egress rules of the target's security group through the IaaS API
+- the role `run-command.editor` on the project for a service account, either an existing one or one that Terraform creates, so that this account can send Run Command to the target
 
 ## Architecture
 
@@ -97,22 +98,45 @@ Terraform hides the output of the script, because its environment holds the toke
 
 A deleted default rule does not come back. A change of `egress_mode` therefore replaces the target's security group, its network interface and the server. The new group starts with its default rules, and the new server boots for the first time under the rule set of the new mode. The jump host stays as it is.
 
+## Who may send Run Command
+
+The Run Command API checks the permission `run-command.command.create` on the project. It answers `403 Forbidden` to an identity without that permission, even when that identity created the project and every resource in it.
+
+Terraform makes `stackit_admin_email` the owner of the project. The service account that runs Terraform does not become a member of the project; it acts through its roles on `stackit_parent_container_id` or above. A role on a folder carries other permissions than the role of the same name on a project. On a folder, the role `owner` contains no `run-command` permission. On a project, it contains all five. The authorization API lists the roles of a resource with their permissions:
+
+```bash
+stackit curl https://authorization.api.stackit.cloud/v2/project/<project-id>/roles
+stackit curl https://authorization.api.stackit.cloud/v2/folder/<folder-id>/roles
+```
+
+`045-run-command-access.tf` therefore gives one service account the role `run-command.editor` on the project. Of the predefined roles that contain `run-command.command.create`, it has the fewest permissions: it reads the agent and the command templates, creates commands and lists and reads their results. It cannot enable the Run Command service. That needs `service-enablement.service-state.edit`, which roles such as `editor` and `owner` contain.
+
+`run_command_service_account_email` selects the service account:
+
+| `run_command_service_account_email` | Service account that gets the role                                                    |
+| ----------------------------------- | ------------------------------------------------------------------------------------- |
+| unset (default)                     | Terraform creates `run_command_service_account_name` in the project.                  |
+| an email in lower case              | the existing account. It can belong to another project. Terraform does not change it. |
+
+The output `run_command_service_account_email` names the account in both cases. Terraform creates no key for it, because `stackit_service_account_key` keeps the key JSON, private key included, in the state. [Verify](#verify) shows how to create a key with the CLI and send the command as that account.
+
 ## Files
 
-| File                                     | Contents                                                              |
-| ---------------------------------------- | --------------------------------------------------------------------- |
-| `010-provider.tf`                        | provider, with `enable_beta_resources` for the access token           |
-| `020-variables.tf`                       | all inputs, including `egress_rules` and `egress_mode`                |
-| `030-network-area.tf`                    | network area and its regional configuration                           |
-| `040-project.tf`                         | project with the `networkArea` label                                  |
-| `050-network.tf`                         | the network of both machines                                          |
-| `060-security-groups.tf`                 | both security groups, the two ingress rules and the egress allow-list |
-| `070-default-egress-rules.tf`            | the mode switch and the removal of the default egress rules           |
-| `080-cloud-init.tf`                      | user data of both machines                                            |
-| `090-servers.tf`                         | key pair, network interfaces, public IP and both servers              |
-| `100-outputs.tf`                         | IDs, addresses, the SSH command and the verify commands               |
-| `scripts/remove-default-egress-rules.sh` | runs on the machine that runs Terraform                               |
-| `files/egress-probe-boothook.sh`         | runs on the target at every boot and installs the probe               |
+| File                                     | Contents                                                                                                     |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `010-provider.tf`                        | provider, with `enable_beta_resources` for the access token and the experiment `iam` for the role assignment |
+| `020-variables.tf`                       | all inputs, including `egress_rules` and `egress_mode`                                                       |
+| `030-network-area.tf`                    | network area and its regional configuration                                                                  |
+| `040-project.tf`                         | project with the `networkArea` label                                                                         |
+| `045-run-command-access.tf`              | the service account for Run Command and its role on the project                                              |
+| `050-network.tf`                         | the network of both machines                                                                                 |
+| `060-security-groups.tf`                 | both security groups, the two ingress rules and the egress allow-list                                        |
+| `070-default-egress-rules.tf`            | the mode switch and the removal of the default egress rules                                                  |
+| `080-cloud-init.tf`                      | user data of both machines                                                                                   |
+| `090-servers.tf`                         | key pair, network interfaces, public IP and both servers                                                     |
+| `100-outputs.tf`                         | IDs, addresses, the SSH command and the verify commands                                                      |
+| `scripts/remove-default-egress-rules.sh` | runs on the machine that runs Terraform                                                                      |
+| `files/egress-probe-boothook.sh`         | runs on the target at every boot and installs the probe                                                      |
 
 ## Usage
 
@@ -120,7 +144,8 @@ A deleted default rule does not come back. A change of `egress_mode` therefore r
 
 - Terraform 1.10 or later. Ephemeral resources exist since that version.
 - Provider `stackitcloud/stackit` 0.118.0 or later.
-- A STACKIT service account key that is allowed to create network areas in `stackit_org_id` and projects under `stackit_parent_container_id`. `stackit_access_token` works with a service account key only.
+- A STACKIT service account key that is allowed to create network areas in `stackit_org_id` and projects under `stackit_parent_container_id`. In the new project it also adds a member (`iam.member.add`) and, unless `run_command_service_account_email` is set, creates a service account (`iam.service-account.create`). `stackit_access_token` works with a service account key only.
+- For the Run Command check: an identity that may enable the Run Command service on the project, and a key of the service account that holds `run-command.editor`. See [Who may send Run Command](#who-may-send-run-command).
 - `bash`, `jq` and `curl` 7.55.0 or later on the machine that runs Terraform.
 - An SSH key pair and an OpenSSH client with `-J` (ProxyJump).
 - The ID of the public image `Ubuntu 24.04` (amd64). The user data relies on two properties of that image: it ships `nft`, and it starts sshd through socket activation.
@@ -148,6 +173,8 @@ Replace every placeholder. These variables have no default:
 - `image_id`: see above
 
 `stackit_service_account_key_path` is optional. Without it the provider reads `STACKIT_SERVICE_ACCOUNT_KEY_PATH` or the credentials file.
+
+`run_command_service_account_email` is optional. Set it to give an existing service account the role for Run Command. Without it Terraform creates a service account named `run_command_service_account_name` (default `run-command`) in the project.
 
 ### 2. Deploy
 
@@ -212,23 +239,36 @@ stackit security-group rule list --project-id <project-id> --security-group-id <
 
 If a list also shows an ingress rule whose remote security group is the group itself, the platform added it. The [security group concepts](https://docs.stackit.cloud/products/network/core-networking/security-groups/basics/concepts/) state that a new group allows traffic from members of the same group. Such a rule admits only members of that group, and each group has one member.
 
-**Run Command.** Run Command is the test for the running Server Agent: the platform sends a script, and the agent on the VM runs it. Enable the service once per project, [in the portal](https://docs.stackit.cloud/products/compute-engine/run-command/getting-started/enable-run-command-service/) under _Computing > Server > your server > Command > Templates > Enable Commands_ or [through the API](https://docs.stackit.cloud/products/compute-engine/run-command/how-tos/api-enable-the-run-command-service/):
+**Run Command.** Run Command is the test for the running Server Agent: the platform sends a script, and the agent on the VM runs it. Enable the service once per project, [in the portal](https://docs.stackit.cloud/products/compute-engine/run-command/getting-started/enable-run-command-service/) under _Computing > Server > your server > Command > Templates > Enable Commands_ or [through the API](https://docs.stackit.cloud/products/compute-engine/run-command/how-tos/api-enable-the-run-command-service/). The role `run-command.editor` does not allow this step. Run it as the project owner `stackit_admin_email` or as another identity with `service-enablement.service-state.edit` on the project:
 
 ```bash
 stackit curl -X POST \
   "https://service-enablement.api.eu01.stackit.cloud/v1/projects/<project-id>/services/cloud.stackit.run-command"
 ```
 
+Send the command as the service account that `terraform output -raw run_command_service_account_email` prints. A CLI profile of its own keeps the login of your default profile. For the account Terraform created, create a key and activate it in that profile. The key file holds the private key; `umask 077` makes it readable for you only:
+
+```bash
+(umask 077; stackit service-account key create --email <run-command-sa-email> --project-id <project-id> \
+  --output-format json --assume-yes > ~/.stackit/run-command-key.json)
+
+stackit config profile create run-command --empty --no-set
+STACKIT_CLI_PROFILE=run-command stackit auth activate-service-account \
+  --service-account-key-path ~/.stackit/run-command-key.json
+```
+
+For an existing account, activate a key you already have. To create one, pass the project the account belongs to as `--project-id`.
+
 Then send a command and read its result. `create` prints the ID of the command:
 
 ```bash
-stackit server command create --project-id <project-id> --server-id <target-server-id> \
+STACKIT_CLI_PROFILE=run-command stackit server command create --project-id <project-id> --server-id <target-server-id> \
   --template-name RunShellScript --params script='systemctl is-active stackit-server-agent.service'
 
-stackit server command describe <command-id> --project-id <project-id> --server-id <target-server-id>
+STACKIT_CLI_PROFILE=run-command stackit server command describe <command-id> --project-id <project-id> --server-id <target-server-id>
 ```
 
-The command reached the agent when its status is `completed` and its exit code is 0.
+The command reached the agent when its status is `completed` and its exit code is 0. `403 Forbidden` from `create` means that the active identity lacks `run-command.command.create` on the project.
 
 ## Measure what a VM needs
 
@@ -293,4 +333,9 @@ terraform apply -replace=stackit_server.target
 terraform destroy
 ```
 
-`terraform destroy` removes everything the example created, including the project and the network area.
+`terraform destroy` removes everything the example created, including the project, the network area and the service account for Run Command if Terraform created it. An existing account loses its role on the project and keeps its keys. Delete the key file you created and the CLI profile yourself:
+
+```bash
+rm ~/.stackit/run-command-key.json
+stackit config profile delete run-command
+```
