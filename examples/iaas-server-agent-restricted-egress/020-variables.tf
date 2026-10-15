@@ -132,7 +132,7 @@ variable "egress_mode" {
 }
 
 variable "egress_rules" {
-  description = "Outbound allow-list of the target's security group. Each entry becomes one IPv4 egress rule. ip_range takes a CIDR or one of two names: \"nameservers\" stands for every address in var.nameservers, \"stackit\" for every IPv4 range in data.stackit_public_ip_ranges. Leave port_min and port_max unset for a protocol without ports, such as icmp. The default holds the destinations the STACKIT documentation names."
+  description = "Outbound allow-list of the target's security group. Each entry becomes one IPv4 egress rule per address range. ip_range takes a CIDR or one of two names: \"nameservers\" stands for every address in var.nameservers, \"stackit\" for every IPv4 range in data.stackit_public_ip_ranges. Leave port_min and port_max unset for a protocol without ports, such as icmp. The default holds the destinations the STACKIT documentation names."
   type = map(object({
     description = string
     protocol    = string
