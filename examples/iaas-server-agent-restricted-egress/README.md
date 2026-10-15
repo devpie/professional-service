@@ -134,7 +134,7 @@ The output `run_command_service_account_email` names the account in both cases. 
 | `070-default-egress-rules.tf`            | the mode switch and the removal of the default egress rules                                                  |
 | `080-cloud-init.tf`                      | user data of both machines                                                                                   |
 | `090-servers.tf`                         | key pair, network interfaces, public IP and both servers                                                     |
-| `100-outputs.tf`                         | IDs, addresses, the SSH command and the verify commands                                                      |
+| `100-outputs.tf`                         | IDs, addresses, the Run Command service account, the SSH command and the verify commands                     |
 | `scripts/remove-default-egress-rules.sh` | runs on the machine that runs Terraform                                                                      |
 | `files/egress-probe-boothook.sh`         | runs on the target at every boot and installs the probe                                                      |
 
