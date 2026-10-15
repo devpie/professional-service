@@ -20,10 +20,9 @@ locals {
 
 # --- jump host -----------------------------------------------------------
 #
-# A security group only allows. The group has one ingress rule, so the jump
-# host accepts new connections on TCP 2222 from admin_cidr and nothing else.
-# The group is stateful: answers to connections the jump host opened itself
-# pass without a rule.
+# A security group only allows. Terraform adds one ingress rule to the group:
+# new connections on TCP 2222 from admin_cidr. The group is stateful: answers
+# to connections the jump host opened itself pass without a rule.
 resource "stackit_security_group" "jump" {
   project_id  = local.project_id
   name        = "${var.name_prefix}-jump"
@@ -47,9 +46,9 @@ resource "stackit_security_group_rule" "jump_ssh" {
 
 # --- target --------------------------------------------------------------
 #
-# The target has no public IP. The only inbound rule names the jump host's
-# security group as the source, so SSH reaches the target from the jump host
-# and from nowhere else.
+# The target has no public IP. The ingress rule Terraform adds names the jump
+# host's security group as the source, so SSH reaches the target from the
+# jump host and from nowhere else.
 resource "stackit_security_group" "target" {
   project_id  = local.project_id
   name        = "${var.name_prefix}-target"

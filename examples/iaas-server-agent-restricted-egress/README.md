@@ -13,7 +13,7 @@ A security group rule only allows. Every new security group starts with two rule
 The example creates:
 
 - a STACKIT Network Area (SNA) with its regional configuration, a project attached to it and one network
-- a **jump host** with a public IP, whose security group has one ingress rule and whose sshd listens on TCP 2222
+- a **jump host** with a public IP, whose security group admits TCP 2222 from `admin_cidr` and whose sshd listens on that port
 - a **target** without a public IP, with the Server Agent, an egress allow-list and a probe that logs every outbound connection
 - a step that deletes the two default egress rules of the target's security group through the IaaS API
 
@@ -40,7 +40,7 @@ flowchart LR
     target -->|"TCP 443"| stackit
 ```
 
-Each machine has its own security group, and its network interface carries that group and no other. The two groups have one ingress rule each:
+Each machine has its own security group, and its network interface carries that group and no other. Terraform adds one ingress rule to each group:
 
 | Security group | Ingress rule | Source                                    |
 | -------------- | ------------ | ----------------------------------------- |
@@ -197,11 +197,13 @@ ssh -J ubuntu@<jump host>:2222 ubuntu@<target> \
   'curl -sS -o /dev/null -w "%{http_code}\n" https://stackit-server-agent.object.storage.eu01.onstackit.cloud/stackit-server-agent.gpg'
 ```
 
-**Rules of both security groups.** The target's group lists its ingress rule and the allow-list, and no egress rule without a protocol. The jump host's group lists its ingress rule and the two default egress rules:
+**Rules of both security groups.** The target's group lists the rule for TCP 22 from the jump host's group and the allow-list, and no egress rule without a protocol. The jump host's group lists the rule for TCP 2222 from `admin_cidr` and the two default egress rules:
 
 ```bash
 stackit security-group rule list --project-id <project-id> --security-group-id <group-id>
 ```
+
+If a list also shows an ingress rule whose remote security group is the group itself, the platform added it. The [security group concepts](https://docs.stackit.cloud/products/network/core-networking/security-groups/basics/concepts/) describe such a rule for a new group. It admits only members of that group, and each group has one member.
 
 **Run Command.** Run Command is the test for the running Server Agent: the platform sends a script, and the agent on the VM runs it. [Enable the service once per project](https://docs.stackit.cloud/products/compute-engine/run-command/how-tos/api-enable-the-run-command-service/), in the portal under _Server > Commands > Templates > Enable Commands_ or through the API:
 
