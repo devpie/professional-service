@@ -78,14 +78,17 @@ output "verify_commands" {
     # Jump host: the only listener outside the loopback addresses is TCP ${local.jump_ssh_port}.
     ${local.ssh_jump} 'ss -Htln'
 
-    # Target: cloud-init finished its first boot without an error. "detail" names DataSourceOpenStackLocal; DataSourceNone means the VM reached no metadata service.
+    # Target: cloud-init finished its first boot without an error. "detail" names DataSourceOpenStackLocal.
     ${local.ssh_target} 'cloud-init status --long'
+
+    # Target, without SSH: the serial console names the data source of the first boot. DataSourceNone means that cloud-init reached no metadata service.
+    stackit server log ${stackit_server.target.server_id} --project-id ${local.project_id} --length 5000 | grep -a -E 'No active metadata service found|Datasource DataSource'
 
     # Target: the unit of the STACKIT Server Agent is active.
     ${local.ssh_target} 'systemctl is-active stackit-server-agent.service'
 
     # Target: a destination outside the default allow-list, given as an address so the check needs no DNS.
-    # "restricted": curl gets no connection, prints 000 and ends with curl error 28 after 10 seconds. "open": curl prints the HTTP status.
+    # "restricted": curl gets no connection, reports curl error 28 after 10 seconds and then prints 000. "open": curl prints the HTTP status.
     ${local.ssh_target} 'curl -sS -m 10 -o /dev/null -w "%%{http_code}\n" https://1.1.1.1'
 
     # Target: destinations of the outbound connections the probe logged, over all boots.

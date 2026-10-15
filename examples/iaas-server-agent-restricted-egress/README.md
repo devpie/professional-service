@@ -2,7 +2,7 @@
 
 # Restricted Egress for a VM with cloud-init and the STACKIT Server Agent
 
-Deploys a Linux VM whose security group allows outbound traffic to an allow-list only, with the STACKIT Server Agent switched on, and a jump host as the only way to reach it over SSH. The example allows the two outbound destinations that cloud-init, the Server Agent and Run Command need, removes the default egress rules that Terraform cannot manage, and adds a probe that logs the destination of every new outbound connection once cloud-init has loaded it, so you can check and extend the list.
+Deploys a Linux VM whose security group allows outbound traffic to an allow-list only, with the STACKIT Server Agent switched on, and a jump host as the only way to reach it over SSH. The example adds the two egress rules that cloud-init, the Server Agent and Run Command need: DHCP and the metadata service. It removes the default egress rules, which Terraform cannot manage. From the moment cloud-init loads it, a probe logs the destination of every new outbound connection, so you can check and extend the list.
 
 ## What the example shows
 
@@ -56,16 +56,16 @@ The jump host is not the subject of the egress test. Its security group keeps th
 
 `egress_rules` holds every egress rule this example adds to the target's security group. Its default holds the two rules that cloud-init, the Server Agent and Run Command need:
 
-| Key        | Destination          | Protocol and port | What needs it                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| ---------- | -------------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `dhcp`     | `0.0.0.0/0`          | UDP 67            | The interface gets its IPv4 address, the gateway and the nameservers through DHCP. The first request goes to the broadcast address, the renewal of the lease to the DHCP server of the network.                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| `metadata` | `169.254.169.254/32` | TCP 80            | [cloud-init reads metadata, user data and vendor data](https://docs.cloud-init.io/en/latest/explanation/boot.html). The vendor data installs the Server Agent from `http://169.254.169.254/stackit/v1/server-agent/amd64/deb` ([Install the Server Agent on a running server](https://docs.stackit.cloud/products/compute-engine/server-agent/getting-started/installing-server-agent-existing-server/)). The Server Agent and `stackit-server-monitoring-agent`, which comes with it, open connections to this address only. Run Command needs no further rule: the agent receives its commands through the metadata service. |
+| Key        | Destination          | Protocol and port | What needs it                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| ---------- | -------------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `dhcp`     | `0.0.0.0/0`          | UDP 67            | The interface gets its IPv4 address, the gateway and the nameservers through DHCP. The VM sends its first request to the broadcast address and renews the lease at the DHCP server of the network, both to UDP port 67 ([RFC 2131](https://www.rfc-editor.org/rfc/rfc2131), sections 3.1, 4.1 and 4.4.5). The rule allows UDP 67 to every IPv4 address, so a process on the target can send datagrams to port 67 of any host on the internet as well.                                                                                                                                                                                                                                                                                                                          |
+| `metadata` | `169.254.169.254/32` | TCP 80            | [cloud-init reads metadata, user data and vendor data](https://docs.cloud-init.io/en/latest/explanation/boot.html). The vendor data installs the Server Agent at the first boot. The [guide for a running server](https://docs.stackit.cloud/products/compute-engine/server-agent/getting-started/installing-server-agent-existing-server/) loads the same package from `http://169.254.169.254/stackit/v1/server-agent/amd64/deb`. The Server Agent connects to this address only. Run Command needs no further rule: the Server Agent receives its commands through the metadata service. `stackit-server-monitoring-agent`, which comes with the Server Agent, sends its metrics to `http://169.254.169.254/stackit/server-management-service/v1/agent/monitoring/metrics`. |
 
-The default egress rules of a new security group allow DHCP like all other traffic. Once they are gone, the group drops DHCP as well, unless a rule allows it. Without the rule `dhcp` the interface gets no IPv4 address. cloud-init then finds no metadata service and falls back to `DataSourceNone`, the platform does not install the Server Agent, and Run Command answers `404 agent not found`.
+The default egress rules of a new security group allow DHCP like all other traffic. Once they are gone, the group drops DHCP unless a rule allows it. Without the rule `dhcp` the interface gets no IPv4 address. cloud-init then reaches no metadata service and falls back to `DataSourceNone`. The platform does not install the Server Agent, and `stackit server command create` fails with `404 Not Found` and the message `agent not found`.
 
 `ip_range` of a rule takes a CIDR or one of two names. `nameservers` stands for every address in the variable `nameservers`, which also configures the network. `stackit` stands for every IPv4 range the data source `stackit_public_ip_ranges` returns. A security group rule takes one range, so Terraform creates one rule per range. [`scripts/check-stackit-ip.sh`](../../scripts/check-stackit-ip.sh) tells for any address whether it belongs to the ranges.
 
-The default has no rule for DNS, NTP or the package mirrors of the image. Name resolution, time synchronisation and package updates of the operating system fail on the target until you add rules for them; `systemd-timesyncd` does not synchronise the clock. The list has no IPv6 rule; the network has no IPv6 prefix. Add what your machine needs through `egress_rules`. The section [Measure what a VM needs](#measure-what-a-vm-needs) shows how to find it.
+The default has no rule for DNS, NTP or the package mirrors of the image. Until you add rules for them, the target resolves no names, does not synchronise its clock and installs no package updates of the operating system. The list has no IPv6 rule; the network has no IPv6 prefix. Add what your machine needs through `egress_rules`. The section [Measure what a VM needs](#measure-what-a-vm-needs) shows how to find it.
 
 ## How the default egress rules are removed
 
@@ -169,7 +169,7 @@ Replace every placeholder. These variables have no default:
 - `ssh_public_key`: your complete public SSH key
 - `image_id`: see above
 
-`admin_cidr` must hold the address STACKIT sees as the source of your SSH connection. Some internet connections leave through more than one public IPv4 address, depending on the destination, and an IP lookup service then shows another address than the one STACKIT sees. Compare two services, for example `curl -4 https://api.ipify.org` and `curl -4 https://ifconfig.me`. If they differ and SSH to the jump host times out, set the other address. A changed rule admits the first connection after about 90 seconds.
+`admin_cidr` must hold the address that STACKIT sees as the source of your SSH connection. Some internet lines use more than one public IPv4 address and pick one per destination. An IP lookup service then shows a different address from the one STACKIT sees. Compare two services, for example `curl -4 https://api.ipify.org` and `curl -4 https://ifconfig.me`. If they differ and SSH to the jump host times out, set the other address. A changed rule admits connections about 85 seconds after `terraform apply` has finished.
 
 `stackit_service_account_key_path` is optional. Without it the provider reads `STACKIT_SERVICE_ACCOUNT_KEY_PATH` or the credentials file.
 
@@ -190,13 +190,13 @@ terraform apply
 $(terraform output -raw ssh_command)
 ```
 
-The command has the form `ssh -J ubuntu@<jump host>:2222 ubuntu@<target>`. A timeout on port 2222 means that the security group of the jump host dropped the connection; see `admin_cidr` in [Configure](#1-configure). Both machines get `ssh_public_key` for the default user of the image through a key pair. `ssh_user` changes the user name in the outputs for an image with another default user.
+The command has the form `ssh -J ubuntu@<jump host>:2222 ubuntu@<target>`. If SSH to port 2222 times out, check that `admin_cidr` holds the address STACKIT sees, as described in [Configure](#1-configure). Both machines get `ssh_public_key` for the default user of the image through a key pair. `ssh_user` changes the user name in the outputs for an image with another default user.
 
 The key pair belongs to the service account that runs Terraform, not to the project. Its name is unique for that account, so a second deployment with the same service account needs another `name_prefix`.
 
 ## Verify
 
-`terraform output -raw verify_commands` prints the following commands with the addresses and IDs of your deployment.
+`terraform output -raw verify_commands` prints the commands of this section and the probe report from [Measure what a VM needs](#measure-what-a-vm-needs) with the addresses and IDs of your deployment.
 
 **Jump host.** `ss -Htln` lists the listening TCP sockets. Port 2222 is the only one that is not bound to a loopback address:
 
@@ -204,11 +204,20 @@ The key pair belongs to the service account that runs Terraform, not to the proj
 ssh -p 2222 ubuntu@<jump host> 'ss -Htln'
 ```
 
-**cloud-init on the target.** `status: done` means the first boot finished. `cloud-init status` exits with a status other than 0 when a stage reported an error. `cloud-init status --wait` blocks until cloud-init finished. The line `detail` names `DataSourceOpenStackLocal`. `DataSourceNone` there means that cloud-init reached no metadata service, for example because the rule `dhcp` is missing:
+**cloud-init on the target.** `status: done` means the first boot finished. `cloud-init status` exits with a status other than 0 when a stage reported an error. `cloud-init status --wait` blocks until cloud-init finished. The line `detail` names `DataSourceOpenStackLocal`:
 
 ```bash
 ssh -J ubuntu@<jump host>:2222 ubuntu@<target> 'cloud-init status --long'
 ```
+
+**cloud-init on the target, without SSH.** Without the rule `dhcp` the target gets neither an IPv4 address nor the SSH key, and SSH to it fails. The serial console of the target shows the data source in every case:
+
+```bash
+stackit server log <target-server-id> --project-id <project-id> --length 5000 \
+  | grep -a -E 'No active metadata service found|Datasource DataSource'
+```
+
+A working target prints `Datasource DataSourceOpenStackLocal`. `No active metadata service found` followed by `Datasource DataSourceNone` means that cloud-init reached no metadata service.
 
 **Server Agent on the target.** The [installation guide](https://docs.stackit.cloud/products/compute-engine/server-agent/getting-started/installing-server-agent-api/) names the unit:
 
@@ -216,7 +225,7 @@ ssh -J ubuntu@<jump host>:2222 ubuntu@<target> 'cloud-init status --long'
 ssh -J ubuntu@<jump host>:2222 ubuntu@<target> 'systemctl is-active stackit-server-agent.service'
 ```
 
-**A destination outside the allow-list.** This check shows that the restriction is in effect. The request goes to the address `1.1.1.1` directly, so it needs no DNS, and no rule of the default allow-list covers it. With `egress_mode = "restricted"` curl gets no connection: it prints `000` and ends with `curl: (28)`, the timeout of a connection that got no answer, after 10 seconds. With `egress_mode = "open"` curl prints an HTTP status. An HTTP status on a restricted target shows that a rule allows the connection, for example a default egress rule that is still in place:
+**A destination outside the allow-list.** This check shows that the restriction is in effect. The request goes to the address `1.1.1.1` directly and needs no DNS. No rule of the default allow-list covers it. With `egress_mode = "restricted"` curl gets no connection. After 10 seconds it reports `curl: (28)`, the timeout of a connection that got no answer, and prints `000`. With `egress_mode = "open"` curl prints an HTTP status. An HTTP status on a restricted target shows that a rule allows the connection, for example a default egress rule that is still in place:
 
 ```bash
 ssh -J ubuntu@<jump host>:2222 ubuntu@<target> \
@@ -260,7 +269,7 @@ STACKIT_CLI_PROFILE=run-command stackit server command create --project-id <proj
 STACKIT_CLI_PROFILE=run-command stackit server command describe <command-id> --project-id <project-id> --server-id <target-server-id>
 ```
 
-The command reached the agent when its status is `completed` and its exit code is 0. `403 Forbidden` from `create` means that the active identity lacks `run-command.command.create` on the project.
+The command reached the agent when its status is `completed` and its exit code is 0. `403 Forbidden` from `create` means that the active identity lacks `run-command.command.create` on the project. `404 Not Found` with the message `agent not found` means that no Server Agent has registered for the target. A new target gives this answer until its Server Agent registers, about two minutes after the server is created. If the answer stays, the serial console shows whether cloud-init reached the metadata service.
 
 ## Measure what a VM needs
 
@@ -276,7 +285,7 @@ ssh -J ubuntu@<jump host>:2222 ubuntu@<target> 'sudo egress-probe-report'
 COUNT  DESTINATION                              PROTO  PORT   USER
 ```
 
-`COUNT` is the number of new connections, `USER` the owner of the socket. Arguments go to `journalctl`: `sudo egress-probe-report --boot` covers the current boot only. The report lists neither DHCP nor the requests cloud-init sends before the probe loads. The rules `dhcp` and `metadata` cover both.
+`COUNT` is the number of new connections, `USER` the owner of the socket. Arguments go to `journalctl`: `sudo egress-probe-report --boot` covers the current boot only. During boot the report lists neither the DHCP exchange nor the requests cloud-init sends before the probe loads. The rules `dhcp` and `metadata` cover both.
 
 The user data of the target is this boothook and no cloud-config. cloud-init [merges the cloud-config of the user over the cloud-config of the vendor data](https://docs.cloud-init.io/en/latest/explanation/vendordata.html). A boothook merges with nothing, so the user data of this example overrides nothing the platform delivers as vendor data.
 
