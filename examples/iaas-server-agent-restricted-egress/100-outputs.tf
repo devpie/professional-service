@@ -83,6 +83,7 @@ output "verify_commands" {
     ${local.ssh_target} 'curl -sS -o /dev/null -w "%%{http_code}\n" https://stackit-server-agent.object.storage.${var.stackit_region}.onstackit.cloud/stackit-server-agent.gpg'
 
     # Target: a destination outside the default allow-list. "restricted": curl gets no connection and prints 000. "open": curl prints the HTTP status.
+    # curl error 28 is the timeout of a dropped connection. Error 6 means the name did not resolve; the check is then void.
     ${local.ssh_target} 'curl -sS -m 10 -o /dev/null -w "%%{http_code}\n" https://example.com'
 
     # Target: destinations of the outbound connections the probe logged, over all boots.
