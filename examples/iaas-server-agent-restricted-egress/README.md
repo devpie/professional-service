@@ -169,6 +169,8 @@ Replace every placeholder. These variables have no default:
 - `ssh_public_key`: your complete public SSH key
 - `image_id`: see above
 
+`admin_cidr` must hold the address STACKIT sees as the source of your SSH connection. Some internet connections leave through more than one public IPv4 address, depending on the destination, and an IP lookup service then shows another address than the one STACKIT sees. Compare two services, for example `curl -4 https://api.ipify.org` and `curl -4 https://ifconfig.me`. If they differ and SSH to the jump host times out, set the other address. A changed rule admits the first connection after about 90 seconds.
+
 `stackit_service_account_key_path` is optional. Without it the provider reads `STACKIT_SERVICE_ACCOUNT_KEY_PATH` or the credentials file.
 
 `run_command_service_account_email` is optional. Set it to give an existing service account the role for Run Command. Without it Terraform creates a service account named `run_command_service_account_name` (default `run-command`) in the project.
@@ -188,7 +190,7 @@ terraform apply
 $(terraform output -raw ssh_command)
 ```
 
-The command has the form `ssh -J ubuntu@<jump host>:2222 ubuntu@<target>`. Both machines get `ssh_public_key` for the default user of the image through a key pair. `ssh_user` changes the user name in the outputs for an image with another default user.
+The command has the form `ssh -J ubuntu@<jump host>:2222 ubuntu@<target>`. A timeout on port 2222 means that the security group of the jump host dropped the connection; see `admin_cidr` in [Configure](#1-configure). Both machines get `ssh_public_key` for the default user of the image through a key pair. `ssh_user` changes the user name in the outputs for an image with another default user.
 
 The key pair belongs to the service account that runs Terraform, not to the project. Its name is unique for that account, so a second deployment with the same service account needs another `name_prefix`.
 
