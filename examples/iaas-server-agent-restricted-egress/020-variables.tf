@@ -90,13 +90,19 @@ variable "network_prefix" {
 }
 
 variable "nameservers" {
-  description = "IPv4 nameservers of the network. The egress rules with ip_range = \"nameservers\" allow DNS to exactly these addresses."
+  description = "One to three IPv4 nameservers of the network. The egress rules with ip_range = \"nameservers\" allow DNS to exactly these addresses."
   type        = list(string)
   default     = ["1.1.1.1", "9.9.9.9"]
 
+  # The IaaS API takes at most three nameservers. Every address becomes part
+  # of a for_each key in 060-security-groups.tf, so no address repeats.
   validation {
-    condition     = length(var.nameservers) > 0 && alltrue([for ns in var.nameservers : !strcontains(ns, ":") && can(cidrhost("${ns}/32", 0))])
-    error_message = "nameservers needs at least one entry, and every entry must be an IPv4 address without a prefix length."
+    condition = (
+      length(var.nameservers) >= 1 && length(var.nameservers) <= 3 &&
+      length(distinct(var.nameservers)) == length(var.nameservers) &&
+      alltrue([for ns in var.nameservers : !strcontains(ns, ":") && can(cidrhost("${ns}/32", 0))])
+    )
+    error_message = "nameservers needs one to three distinct entries, and every entry must be an IPv4 address without a prefix length."
   }
 }
 
