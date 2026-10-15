@@ -55,7 +55,7 @@ The jump host is not the subject of the egress test. Its security group keeps th
 
 ## Egress rules of the target
 
-`egress_rules` is the complete outbound allow-list. Its default holds the destinations the STACKIT documentation names:
+`egress_rules` holds every egress rule this example adds to the target's security group. Its default holds the destinations the STACKIT documentation names:
 
 | Key                  | Destination                                    | Protocol and port | What needs it                                                                                                                                         | Source                                                                                                                                                                                                                                                         |
 | -------------------- | ---------------------------------------------- | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
