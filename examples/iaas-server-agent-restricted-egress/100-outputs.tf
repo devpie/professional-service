@@ -82,6 +82,9 @@ output "verify_commands" {
     # Target: DNS and HTTPS reach the endpoint of the Server Agent signature. Prints the HTTP status.
     ${local.ssh_target} 'curl -sS -o /dev/null -w "%%{http_code}\n" https://stackit-server-agent.object.storage.${var.stackit_region}.onstackit.cloud/stackit-server-agent.gpg'
 
+    # Target: a destination outside the default allow-list. "restricted": curl gets no connection and prints 000. "open": curl prints the HTTP status.
+    ${local.ssh_target} 'curl -sS -m 10 -o /dev/null -w "%%{http_code}\n" https://example.com'
+
     # Target: destinations of the outbound connections the probe logged, over all boots.
     ${local.ssh_target} 'sudo egress-probe-report'
 

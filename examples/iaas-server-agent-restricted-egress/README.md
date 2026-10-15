@@ -197,6 +197,13 @@ ssh -J ubuntu@<jump host>:2222 ubuntu@<target> \
   'curl -sS -o /dev/null -w "%{http_code}\n" https://stackit-server-agent.object.storage.eu01.onstackit.cloud/stackit-server-agent.gpg'
 ```
 
+**A destination outside the allow-list.** This check shows that the restriction is in effect. The name `example.com` resolves through the DNS rules, and its addresses lie outside the STACKIT public IP ranges, so no rule of the default allow-list covers the request. With `egress_mode = "restricted"` curl gets no connection: it prints `000` and ends with an error after at most 10 seconds. With `egress_mode = "open"` it prints an HTTP status. An HTTP status on a restricted target shows that a rule allows the connection, for example a default egress rule that is still in place:
+
+```bash
+ssh -J ubuntu@<jump host>:2222 ubuntu@<target> \
+  'curl -sS -m 10 -o /dev/null -w "%{http_code}\n" https://example.com'
+```
+
 **Rules of both security groups.** The target's group lists the rule for TCP 22 from the jump host's group and the allow-list, and no egress rule without a protocol. The jump host's group lists the rule for TCP 2222 from `admin_cidr` and the two default egress rules:
 
 ```bash
