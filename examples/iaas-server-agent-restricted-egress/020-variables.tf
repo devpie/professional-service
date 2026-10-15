@@ -109,7 +109,7 @@ variable "nameservers" {
 # --- access --------------------------------------------------------------
 
 variable "admin_cidr" {
-  description = "IPv4 source range that reaches the jump host on TCP 2222, for example your public IP with a /32 suffix."
+  description = "IPv4 source range that reaches the jump host on TCP 2222, for example your public IP with a /32 suffix. It must hold the address STACKIT sees; a connection with several public IPv4 addresses can show another one to STACKIT than to an IP lookup service."
   type        = string
 
   validation {

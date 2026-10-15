@@ -13,7 +13,8 @@ stackit_admin_email = "firstname.lastname@example.com"
 # STACKIT_SERVICE_ACCOUNT_KEY_PATH environment variable or the credentials file.
 # stackit_service_account_key_path = "/path/to/stackit-sa.json"
 
-# Only this IPv4 range reaches the jump host, on TCP 2222.
+# Only this IPv4 range reaches the jump host, on TCP 2222. It must hold the
+# address STACKIT sees. If SSH times out, see admin_cidr in the README.
 admin_cidr = "198.51.100.10/32"
 
 # Public half of your SSH key - never the private key.
