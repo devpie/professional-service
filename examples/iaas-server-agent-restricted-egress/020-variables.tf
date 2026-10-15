@@ -64,7 +64,7 @@ variable "network_area_name" {
 }
 
 variable "name_prefix" {
-  description = "Prefix for the names of the network, the security groups, the network interfaces, the key pair and the two machines."
+  description = "Prefix for the names of the network, the security groups, the network interfaces, the key pair and the two machines. The key pair belongs to the service account that runs Terraform, not to the project. Its name is unique for that account, so a second deployment with the same service account needs another prefix."
   type        = string
   default     = "agent-egress"
 }

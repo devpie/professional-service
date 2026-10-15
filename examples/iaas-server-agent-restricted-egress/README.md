@@ -166,6 +166,8 @@ $(terraform output -raw ssh_command)
 
 The command has the form `ssh -J ubuntu@<jump host>:2222 ubuntu@<target>`. Both machines get `ssh_public_key` for the default user of the image through a key pair. `ssh_user` changes the user name in the outputs for an image with another default user.
 
+The key pair belongs to the service account that runs Terraform, not to the project. Its name is unique for that account, so a second deployment with the same service account needs another `name_prefix`.
+
 ## Verify
 
 `terraform output -raw verify_commands` prints the following commands with the addresses and IDs of your deployment.
