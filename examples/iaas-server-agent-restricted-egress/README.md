@@ -79,7 +79,7 @@ The provider cannot remove them. `stackit_security_group` has no argument for it
 
 1. `ephemeral "stackit_access_token"` issues a token for the service account the provider uses. Terraform writes an ephemeral value neither to the plan nor to the state.
 2. `terraform_data.remove_default_egress_rules` runs [`scripts/remove-default-egress-rules.sh`](scripts/remove-default-egress-rules.sh) once per security group. The token and the URL of the group reach the script through its environment.
-3. The script reads the group, deletes every egress rule that has no protocol, no port range, no IP range and no remote security group, and reads the group again until no such rule is listed.
+3. The script lists the rules of the group, deletes every egress rule that has no protocol, no port range, no IP range and no remote security group, and lists the rules again until no such rule is among them.
 4. The script fails, and `terraform apply` with it, when a call fails or when an egress rule that allows all traffic is left.
 
 The network interface of the target and the target itself depend on this step and on every rule of the allow-list. Terraform creates them last, so the first boot already runs under the final rule set.
