@@ -62,6 +62,11 @@ output "target_security_group_id" {
   value       = stackit_security_group.target.security_group_id
 }
 
+output "run_command_service_account_email" {
+  description = "Service account with the role run-command.editor on the project. Send Run Command as this account."
+  value       = local.run_command_service_account_email
+}
+
 output "ssh_command" {
   description = "Opens a shell on the target through the jump host."
   value       = local.ssh_target
@@ -93,7 +98,7 @@ output "verify_commands" {
     stackit security-group rule list --project-id ${local.project_id} --security-group-id ${stackit_security_group.jump.security_group_id}
     stackit security-group rule list --project-id ${local.project_id} --security-group-id ${stackit_security_group.target.security_group_id}
 
-    # Run Command: the platform reaches the Server Agent on the target.
-    stackit server command create --project-id ${local.project_id} --server-id ${stackit_server.target.server_id} --template-name RunShellScript --params script='systemctl is-active stackit-server-agent.service'
+    # Run Command: the platform reaches the Server Agent on the target. The CLI profile run-command holds a key of ${local.run_command_service_account_email}, see "Verify" in the README.
+    STACKIT_CLI_PROFILE=run-command stackit server command create --project-id ${local.project_id} --server-id ${stackit_server.target.server_id} --template-name RunShellScript --params script='systemctl is-active stackit-server-agent.service'
   EOT
 }

@@ -31,4 +31,7 @@ provider "stackit" {
   # Required by the ephemeral resource stackit_access_token in
   # 070-default-egress-rules.tf.
   enable_beta_resources = true
+  # Required by stackit_authorization_project_role_assignment in
+  # 045-run-command-access.tf.
+  experiments = ["iam"]
 }

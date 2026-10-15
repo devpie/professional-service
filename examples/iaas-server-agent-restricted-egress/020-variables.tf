@@ -118,6 +118,32 @@ variable "admin_cidr" {
   }
 }
 
+# --- Run Command ---------------------------------------------------------
+
+variable "run_command_service_account_email" {
+  description = "Email of an existing service account that sends Run Command to the target. Terraform gives it the role run-command.editor on the project. Unset, Terraform creates a service account in the project and gives the role to that one."
+  type        = string
+  default     = null
+
+  # The provider rejects a subject with upper-case letters, but only at plan.
+  validation {
+    condition     = var.run_command_service_account_email == null || can(regex("^[a-z0-9._-]+@[a-z0-9.-]+$", var.run_command_service_account_email))
+    error_message = "run_command_service_account_email must be a service account email in lower case, for example name-1234567@sa.stackit.cloud."
+  }
+}
+
+variable "run_command_service_account_name" {
+  description = "Name of the service account Terraform creates when run_command_service_account_email is unset. STACKIT appends a random suffix to form the email."
+  type        = string
+  default     = "run-command"
+
+  # The provider checks these rules only at plan.
+  validation {
+    condition     = length(var.run_command_service_account_name) <= 20 && can(regex("^[a-z](-?[a-z0-9]+)*$", var.run_command_service_account_name))
+    error_message = "run_command_service_account_name has at most 20 characters, starts with a lower-case letter and holds lower-case letters, digits and single dashes, but no dash at the end."
+  }
+}
+
 # --- outbound traffic of the target --------------------------------------
 
 variable "egress_mode" {
