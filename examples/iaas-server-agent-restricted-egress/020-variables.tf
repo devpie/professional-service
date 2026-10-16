@@ -35,6 +35,11 @@ variable "stackit_parent_container_id" {
 variable "stackit_admin_email" {
   description = "An existing STACKIT user that becomes owner of the created project. A non-existent address fails with 409 \"subject is not found\"."
   type        = string
+
+  validation {
+    condition     = !endswith(lower(var.stackit_admin_email), "@example.com")
+    error_message = "stackit_admin_email is still the placeholder from terraform.tfvars.example."
+  }
 }
 
 variable "stackit_region" {
@@ -114,7 +119,12 @@ variable "admin_cidr" {
 
   validation {
     condition     = !strcontains(var.admin_cidr, ":") && can(cidrhost(var.admin_cidr, 0))
-    error_message = "admin_cidr must be an IPv4 range in CIDR notation, for example 198.51.100.10/32."
+    error_message = "admin_cidr must be an IPv4 range in CIDR notation, for example your public IPv4 address with a /32 suffix."
+  }
+
+  validation {
+    condition     = !startswith(var.admin_cidr, "198.51.100.")
+    error_message = "admin_cidr is still the placeholder from terraform.tfvars.example."
   }
 }
 
@@ -202,6 +212,11 @@ variable "egress_rules" {
 variable "ssh_public_key" {
   description = "Public SSH key installed on both machines for the default user of the image. Never the private key."
   type        = string
+
+  validation {
+    condition     = !strcontains(var.ssh_public_key, "AAAA...")
+    error_message = "ssh_public_key is still the placeholder from terraform.tfvars.example."
+  }
 }
 
 variable "ssh_user" {
