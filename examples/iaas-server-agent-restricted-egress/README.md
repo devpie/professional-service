@@ -2,21 +2,21 @@
 
 # Restricted Egress for a VM with cloud-init and the STACKIT Server Agent
 
-Deploys a Linux VM, the target, whose security group allows outbound traffic to an allow-list only. The platform installs the STACKIT Server Agent on the target. A jump host is the only way to reach the target over SSH. The example adds the two egress rules that cloud-init, the Server Agent and Run Command need: DHCP and the metadata service. Every new security group also carries two default egress rules that allow all outbound traffic. The STACKIT provider cannot remove them, so Terraform runs a script that deletes them through the IaaS API.
+Deploys a Linux VM, the target, whose security group allows outbound traffic to an allow-list only. The platform installs the STACKIT Server Agent on the target. A jump host is the only way to reach the target over SSH. The example adds the two egress rules that cloud-init, the Server Agent and Run Command need: DHCP and the metadata service. Every new security group also carries two default egress rules that allow all outbound traffic. The STACKIT provider cannot remove them, so Terraform deletes them through the IaaS API.
 
 ## What the example shows
 
-A security group rule only allows. Every new security group starts with two rules that allow all outbound traffic, so an egress rule of your own restricts nothing until those two are gone. This example removes them before the VM boots for the first time. Without them the group also drops DHCP, so the allow-list has to allow it. The first boot is the one that matters: cloud-init runs then, and the platform installs the Server Agent then.
+An egress rule of your own restricts nothing while the two default egress rules exist. This example deletes them before the target boots for the first time. That first boot matters: cloud-init runs then, and the platform installs the Server Agent then.
 
-**cloud-init and the Server Agent are two different things.** [cloud-init](https://docs.cloud-init.io/en/latest/explanation/boot.html) is part of the image. It runs at boot and reads metadata, user data and vendor data from the [metadata service](https://docs.stackit.cloud/products/compute-engine/server/basics/maintenance/) at `http://169.254.169.254`. The [STACKIT Server Agent](https://docs.stackit.cloud/products/compute-engine/server-agent/basics/introduction-to-server-agent/) is a service of its own. The platform [installs it during the first boot through vendor data](https://docs.stackit.cloud/products/compute-engine/server-agent/getting-started/installing-server-agent-api/), and [Run Command](https://docs.stackit.cloud/products/compute-engine/run-command/) and Server Update Management use it afterwards.
+[cloud-init](https://docs.cloud-init.io/en/latest/explanation/boot.html) is part of the image and reads metadata, user data and vendor data from the [metadata service](https://docs.stackit.cloud/products/compute-engine/server/basics/maintenance/) at `http://169.254.169.254`. The [STACKIT Server Agent](https://docs.stackit.cloud/products/compute-engine/server-agent/basics/introduction-to-server-agent/) is a service of its own. The platform [installs it through vendor data](https://docs.stackit.cloud/products/compute-engine/server-agent/getting-started/installing-server-agent-api/), and [Run Command](https://docs.stackit.cloud/products/compute-engine/run-command/) uses it afterwards.
 
 The example creates:
 
 - a STACKIT Network Area (SNA) with its regional configuration, a project attached to it and one network
-- a **jump host** with a public IP, whose security group admits TCP 2222 from `admin_cidr` and whose sshd listens on that port
-- a **target** without a public IP, with the Server Agent and an egress allow-list
-- a step that deletes the two default egress rules of the target's security group through the IaaS API
-- the role `run-command.editor` on the project for a service account, either an existing one or one that Terraform creates, so that this account can send Run Command to the target
+- a **jump host** with a public IP, whose sshd listens on TCP 2222
+- a **target** without a public IP, with the Server Agent and the egress allow-list
+- a step that deletes the two default egress rules of the target's security group
+- the role `run-command.editor` on the project for a service account, an existing one or one that Terraform creates
 
 ## Architecture
 
@@ -39,33 +39,20 @@ flowchart LR
     target -->|"TCP 80"| metadata
 ```
 
-Each machine has its own security group, and its network interface carries that group and no other. Terraform adds one ingress rule to each group:
-
-| Security group | Ingress rule | Source                                    |
-| -------------- | ------------ | ----------------------------------------- |
-| jump host      | TCP 2222     | `admin_cidr`                              |
-| target         | TCP 22       | members of the jump host's security group |
-
-Nothing else reaches the jump host from outside, and nothing but the jump host reaches the target. Both groups are stateful: the answers to an allowed connection pass without a rule of their own. The target therefore needs no egress rule for the SSH sessions that arrive from the jump host.
-
-sshd on the jump host listens on port 2222 itself. No port forwarding sits in front of it, and port 22 is closed. It accepts public keys only. TCP forwarding stays on, because `ssh -J` opens the connection to the target through it. The private key never leaves your machine.
-
-The allow-list applies to the target only. The security group of the jump host keeps the two default egress rules.
+Each machine has its own security group. The jump host's group admits TCP 2222 from `admin_cidr`. The target's group admits TCP 22 from members of the jump host's group. Both groups are stateful, so answers to an allowed connection need no rule of their own. The jump host's group keeps its two default egress rules.
 
 ## Egress rules of the target
 
-`egress_rules` holds every egress rule this example adds to the target's security group. Its default holds the two rules that cloud-init, the Server Agent and Run Command need:
+The default value of `egress_rules` holds the two rules that cloud-init, the Server Agent and Run Command need:
 
-| Key        | Destination          | Protocol and port | What needs it                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| ---------- | -------------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `dhcp`     | `0.0.0.0/0`          | UDP 67            | The interface gets its IPv4 address, the gateway and the nameservers through DHCP. The VM sends its first request to the broadcast address and renews the lease at the DHCP server of the network, both to UDP port 67 ([RFC 2131](https://www.rfc-editor.org/rfc/rfc2131), sections 3.1, 4.1 and 4.4.5). The rule allows UDP 67 to every IPv4 address, so a process on the target can send datagrams to port 67 of any host on the internet as well.                                                                                                                                                                                                                                                                                                                          |
-| `metadata` | `169.254.169.254/32` | TCP 80            | [cloud-init reads metadata, user data and vendor data](https://docs.cloud-init.io/en/latest/explanation/boot.html). The vendor data installs the Server Agent at the first boot. The [guide for a running server](https://docs.stackit.cloud/products/compute-engine/server-agent/getting-started/installing-server-agent-existing-server/) loads the same package from `http://169.254.169.254/stackit/v1/server-agent/amd64/deb`. The Server Agent connects to this address only. Run Command needs no further rule: the Server Agent receives its commands through the metadata service. `stackit-server-monitoring-agent`, which comes with the Server Agent, sends its metrics to `http://169.254.169.254/stackit/server-management-service/v1/agent/monitoring/metrics`. |
+| Key        | Destination          | Protocol and port | What needs it                                                                                                                                                                                                                                      |
+| ---------- | -------------------- | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `dhcp`     | `0.0.0.0/0`          | UDP 67            | The interface gets its IPv4 address through DHCP. The target sends its first request to the broadcast address and renews the lease at the DHCP server of the network ([RFC 2131](https://www.rfc-editor.org/rfc/rfc2131), sections 3.1 and 4.4.5). |
+| `metadata` | `169.254.169.254/32` | TCP 80            | cloud-init reads its data from the metadata service, and the vendor data installs the Server Agent from there. The Server Agent connects to this address only and receives its Run Command jobs through it.                                        |
 
-The default egress rules of a new security group allow DHCP like all other traffic. Once they are gone, the group drops DHCP unless a rule allows it. Without the rule `dhcp` the interface gets no IPv4 address. cloud-init then reaches no metadata service and falls back to `DataSourceNone`. The platform does not install the Server Agent, and `stackit server command create` fails with `404 Not Found` and the message `agent not found`.
+Without the rule `dhcp` the interface gets no IPv4 address. cloud-init then reaches no metadata service, and the platform does not install the Server Agent. The rule allows UDP 67 to every IPv4 address, the internet included.
 
-`ip_range` of a rule takes a CIDR or one of two names. `nameservers` stands for every address in the variable `nameservers`, which also configures the network. `stackit` stands for every IPv4 range the data source `stackit_public_ip_ranges` returns. A security group rule takes one range, so Terraform creates one rule per range. [`scripts/check-stackit-ip.sh`](../../scripts/check-stackit-ip.sh) tells for any address whether it belongs to the ranges.
-
-The default value of `egress_rules` has no rule for DNS, NTP or the package mirrors of the image. Until you add rules for them, the target resolves no names, does not synchronise its clock and installs no package updates of the operating system. The list has no IPv6 rule; the network has no IPv6 prefix. Add the rules the target needs through `egress_rules`. Terraform does not merge your value with the default value, so copy the rules `dhcp` and `metadata` from `020-variables.tf` into it:
+The default value has no rule for DNS, NTP or package mirrors. Until you add them, the target resolves no names, does not synchronise its clock and installs no updates. Your value of `egress_rules` replaces the default value, so copy `dhcp` and `metadata` into it. `ip_range` takes a CIDR or one of two names: `nameservers` for the nameservers of the network, `stackit` for every IPv4 range of the data source `stackit_public_ip_ranges`. Terraform creates one rule per address range.
 
 ```hcl
 egress_rules = {
@@ -87,86 +74,34 @@ egress_rules = {
 }
 ```
 
-When `egress_rules` changes, Terraform adds and deletes rules in the target's security group. They apply to the running target without a reboot. cloud-init and the installation of the Server Agent run at the first boot only. To run that boot under the changed rules, replace the target:
-
-```bash
-terraform apply -replace=stackit_server.target
-```
+Changed rules apply to the running target. To run the first boot again under them, replace the target with `terraform apply -replace=stackit_server.target`.
 
 ## How the default egress rules are removed
 
-[Every new security group contains a rule that allows all egress traffic](https://docs.stackit.cloud/products/network/core-networking/security-groups/basics/concepts/). The [IaaS API shows two of them](https://docs.stackit.cloud/products/iaas-api/how-tos/manage-security-groups-and-rules-via-iaas-api/), one for IPv4 and one for IPv6. They have a direction and an ethertype and nothing else: no protocol, no port range, no IP range, no remote security group.
+[Every new security group contains a rule that allows all egress traffic](https://docs.stackit.cloud/products/network/core-networking/security-groups/basics/concepts/). The IaaS API lists two of them, one for IPv4 and one for IPv6, without protocol, port range or IP range. The provider cannot remove them, because `stackit_security_group` has no argument for its rules.
 
-The provider cannot remove them. `stackit_security_group` has no argument for its rules. The data source `stackit_security_group` does not list rules. `stackit_security_group_rule` manages the rules it created and takes over an existing rule only by an import with the rule ID, which only the API returns.
-
-`070-default-egress-rules.tf` therefore calls the API directly:
-
-1. `ephemeral "stackit_access_token"` issues a token for the service account the provider uses. Terraform writes an ephemeral value neither to the plan nor to the state.
-2. `terraform_data.remove_default_egress_rules` runs [`scripts/remove-default-egress-rules.sh`](scripts/remove-default-egress-rules.sh) for the target's security group, and again when Terraform replaces that group. The token and the URL of the group reach the script through its environment.
-3. The script lists the rules of the group, deletes every egress rule that has no protocol, no port range, no IP range and no remote security group, and lists the rules again until no such rule is among them.
-4. The script fails, and `terraform apply` with it, when a call fails or when an egress rule that allows all traffic is left.
-
-The network interface of the target and the target itself depend on this step and on every rule of the allow-list. Terraform creates them last, so the first boot already runs under the final rule set.
-
-Terraform hides the output of the script, because its environment holds the token. When the script fails, the error message of Terraform contains the output. A second run changes nothing: the script finds no default rule and only checks.
+`070-default-egress-rules.tf` therefore deletes them with `curl` and `jq` through the IaaS API. The token comes from the ephemeral resource `stackit_access_token`, which Terraform writes neither to the plan nor to the state. The network interface and the server of the target wait for this step, so the first boot already runs under the final rule set.
 
 ## Who may send Run Command
 
-The Run Command API checks the permission `run-command.command.create` on the project. It answers `403 Forbidden` to an identity without that permission, even when that identity created the project and every resource in it.
+The Run Command API answers `403 Forbidden` to an identity without the permission `run-command.command.create` on the project. The service account that runs Terraform does not become a member of the new project. It acts through its role on `stackit_parent_container_id`, and on a folder the role `owner` contains no `run-command` permission.
 
-Terraform makes `stackit_admin_email` the owner of the project. The service account that runs Terraform does not become a member of the project; it acts through its roles on `stackit_parent_container_id` or above. A role on a folder carries other permissions than the role of the same name on a project. On a folder, the role `owner` contains no `run-command` permission. On a project, it contains all five. The authorization API lists the roles of a resource with their permissions:
-
-```bash
-stackit curl https://authorization.api.stackit.cloud/v2/project/<project-id>/roles
-stackit curl https://authorization.api.stackit.cloud/v2/folder/<folder-id>/roles
-```
-
-`045-run-command-access.tf` therefore gives one service account the role `run-command.editor` on the project. Of the predefined roles that contain `run-command.command.create`, it has the fewest permissions: it reads the agent and the command templates, creates commands and lists and reads their results. It cannot enable the Run Command service. That needs `service-enablement.service-state.edit`, which roles such as `editor` and `owner` contain.
-
-`run_command_service_account_email` selects the service account:
-
-| `run_command_service_account_email` | Service account that gets the role                                                    |
-| ----------------------------------- | ------------------------------------------------------------------------------------- |
-| unset (default)                     | Terraform creates `run_command_service_account_name` in the project.                  |
-| an email in lower case              | the existing account. It can belong to another project. Terraform does not change it. |
-
-The output `run_command_service_account_email` names the account in both cases. Terraform creates no key for it, because `stackit_service_account_key` keeps the key JSON, private key included, in the state. [Verify](#verify) shows how to create a key with the CLI and send the command as that account.
-
-## Files
-
-| File                                     | Contents                                                                                                     |
-| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| `010-provider.tf`                        | provider, with `enable_beta_resources` for the access token and the experiment `iam` for the role assignment |
-| `020-variables.tf`                       | all inputs, including `egress_rules`                                                                         |
-| `030-network-area.tf`                    | network area and its regional configuration                                                                  |
-| `040-project.tf`                         | project with the `networkArea` label                                                                         |
-| `045-run-command-access.tf`              | the service account for Run Command and its role on the project                                              |
-| `050-network.tf`                         | the network of both machines                                                                                 |
-| `060-security-groups.tf`                 | both security groups, the two ingress rules and the egress allow-list                                        |
-| `070-default-egress-rules.tf`            | the access token and the step that runs the script below                                                     |
-| `080-cloud-init.tf`                      | user data of the jump host                                                                                   |
-| `090-servers.tf`                         | key pair, network interfaces, public IP and both servers                                                     |
-| `100-outputs.tf`                         | IDs, addresses, the Run Command service account, the SSH command and the verify commands                     |
-| `scripts/remove-default-egress-rules.sh` | deletes the default egress rules through the IaaS API, on the machine that runs Terraform                    |
+`045-run-command-access.tf` therefore gives a service account the role `run-command.editor` on the project. Of the predefined roles that allow Run Command, it holds the fewest permissions. `run_command_service_account_email` names an existing account. Without it, Terraform creates one in the project. Terraform creates no key, because `stackit_service_account_key` keeps the private key in the state.
 
 ## Usage
 
 ### Prerequisites
 
-- Terraform 1.10 or later. Ephemeral resources exist since that version.
-- Provider `stackitcloud/stackit` 0.118.0 or later.
-- A STACKIT service account key that is allowed to create network areas in `stackit_org_id` and projects under `stackit_parent_container_id`. In the new project it also adds a member (`iam.member.add`) and, unless `run_command_service_account_email` is set, creates a service account (`iam.service-account.create`). `stackit_access_token` works with a service account key only.
-- For the Run Command check: an identity that may enable the Run Command service on the project, and a key of the service account that holds `run-command.editor`. See [Who may send Run Command](#who-may-send-run-command).
+- Terraform 1.10 or later and provider `stackitcloud/stackit` 0.118.0 or later.
+- A STACKIT service account key that may create network areas in `stackit_org_id`, and projects, project members and service accounts under `stackit_parent_container_id`. `stackit_access_token` works with a service account key only.
 - `bash`, `jq` and `curl` 7.55.0 or later on the machine that runs Terraform.
 - An SSH key pair and an OpenSSH client with `-J` (ProxyJump).
-- The ID of the public image `Ubuntu 24.04` (amd64). The user data of the jump host expects the sshd layout of Debian and Ubuntu: the main sshd configuration reads `/etc/ssh/sshd_config.d` first and sets no port, and systemd runs sshd as `ssh.socket` or `ssh.service`.
-- An authenticated [`stackit` CLI](https://github.com/stackitcloud/stackit-cli) for the image lookup and for the checks that read the API.
+- An authenticated [`stackit` CLI](https://github.com/stackitcloud/stackit-cli) for the image lookup and the checks.
+- The ID of the public image `Ubuntu 24.04` (amd64). The jump host's user data expects its sshd layout: `/etc/ssh/sshd_config.d` without a port in the main configuration, and `ssh.socket` or `ssh.service`. STACKIT [deletes a released image after one year](https://docs.stackit.cloud/products/compute-engine/linux-server/faq/), so `image_id` has no default:
 
-STACKIT replaces its public images with new builds and [deletes a released image after one year](https://docs.stackit.cloud/products/compute-engine/linux-server/faq/), so `image_id` has no default:
-
-```bash
-stackit image list --all --project-id <existing-project-id>
-```
+  ```bash
+  stackit image list --all --project-id <existing-project-id>
+  ```
 
 ### 1. Configure
 
@@ -174,20 +109,11 @@ stackit image list --all --project-id <existing-project-id>
 cp terraform.tfvars.example terraform.tfvars
 ```
 
-Replace every placeholder. These variables have no default:
+Replace every placeholder: `stackit_org_id`, `stackit_parent_container_id`, `stackit_admin_email` (owner of the project), `admin_cidr`, `ssh_public_key` and `image_id`.
 
-- `stackit_org_id`: organization the network area is created in
-- `stackit_parent_container_id`: existing folder for the project, or the organization ID
-- `stackit_admin_email`: existing STACKIT user that owns the project
-- `admin_cidr`: IPv4 range that reaches the jump host, for example your public IP with a `/32` suffix
-- `ssh_public_key`: your complete public SSH key
-- `image_id`: see above
+`admin_cidr` must hold the address that STACKIT sees as the source of your SSH connection. Some internet lines use several public IPv4 addresses and pick one per destination. Compare `curl -4 https://api.ipify.org` with `curl -4 https://ifconfig.me`. If they differ and SSH times out, set the other address. A changed rule admits connections about 85 seconds after `terraform apply` has finished.
 
-`admin_cidr` must hold the address that STACKIT sees as the source of your SSH connection. Some internet lines use more than one public IPv4 address and pick one per destination. An IP lookup service then shows a different address from the one STACKIT sees. Compare two services, for example `curl -4 https://api.ipify.org` and `curl -4 https://ifconfig.me`. If they differ and SSH to the jump host times out, set the other address. A changed rule admits connections about 85 seconds after `terraform apply` has finished.
-
-`stackit_service_account_key_path` is optional. Without it the provider reads `STACKIT_SERVICE_ACCOUNT_KEY_PATH` or the credentials file.
-
-`run_command_service_account_email` is optional. Set it to give an existing service account the role for Run Command. Without it Terraform creates a service account named `run_command_service_account_name` (default `run-command`) in the project.
+`run_command_service_account_email` and `stackit_service_account_key_path` are optional.
 
 ### 2. Deploy
 
@@ -204,96 +130,50 @@ terraform apply
 $(terraform output -raw ssh_command)
 ```
 
-The command has the form `ssh -J ubuntu@<jump host>:2222 ubuntu@<target>`. If SSH to port 2222 times out, check that `admin_cidr` holds the address STACKIT sees, as described in [Configure](#1-configure). Both machines get `ssh_public_key` for the default user of the image through a key pair. `ssh_user` changes the user name in the outputs for an image with another default user.
-
-The key pair belongs to the service account that runs Terraform, not to the project. Its name is unique for that account, so a second deployment with the same service account needs another `name_prefix`.
+The command has the form `ssh -J ubuntu@<jump host>:2222 ubuntu@<target>`. The key pair belongs to the service account that runs Terraform. Its name is unique for that account, so a second deployment with the same service account needs another `name_prefix`.
 
 ## Verify
 
-`terraform output -raw verify_commands` prints the checks of this section with the addresses and IDs of your deployment. It leaves out the setup for Run Command and the command that reads the result of a Run Command.
+`terraform output -raw verify_commands` prints these checks with the addresses and IDs of your deployment:
 
-**Jump host.** `ss -Htln` lists the listening TCP sockets. Port 2222 is the only one that is not bound to a loopback address:
+| Check                                              | Expected result                                                                                                                                                                                           |
+| -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ss -Htln` on the jump host                        | Port 2222 is the only listener outside the loopback addresses.                                                                                                                                            |
+| `cloud-init status --long` on the target           | `status: done`, and `detail` names `DataSourceOpenStackLocal`.                                                                                                                                            |
+| `stackit server log` of the target, filtered       | `Datasource DataSourceOpenStackLocal`. `No active metadata service found` and `DataSourceNone` mean that cloud-init reached no metadata service, for example without the rule `dhcp`. SSH then fails too. |
+| `systemctl is-active stackit-server-agent.service` | `active`                                                                                                                                                                                                  |
+| `curl -m 10 https://1.1.1.1` on the target         | After 10 seconds `curl: (28)` and `000`. An HTTP status means that a rule allows the connection.                                                                                                          |
+| `stackit security-group rule list` for both groups | The target's group holds TCP 22, `dhcp` and `metadata`, and no egress rule without protocol. The jump host's group holds TCP 2222 and its default rules.                                                  |
 
-```bash
-ssh -p 2222 ubuntu@<jump host> 'ss -Htln'
-```
-
-**cloud-init on the target.** `status: done` means the first boot finished. `cloud-init status` exits with a status other than 0 when a stage reported an error. `cloud-init status --wait` blocks until cloud-init finished. The line `detail` names `DataSourceOpenStackLocal`:
-
-```bash
-ssh -J ubuntu@<jump host>:2222 ubuntu@<target> 'cloud-init status --long'
-```
-
-**cloud-init on the target, without SSH.** Without the rule `dhcp` the target gets neither an IPv4 address nor the SSH key, and SSH to it fails. The serial console of the target shows the data source in every case:
-
-```bash
-stackit server log <target-server-id> --project-id <project-id> --length 5000 \
-  | grep -a -E 'No active metadata service found|Datasource DataSource'
-```
-
-A working target prints `Datasource DataSourceOpenStackLocal`. `No active metadata service found` followed by `Datasource DataSourceNone` means that cloud-init reached no metadata service.
-
-**Server Agent on the target.** The [installation guide](https://docs.stackit.cloud/products/compute-engine/server-agent/getting-started/installing-server-agent-api/) names the unit:
-
-```bash
-ssh -J ubuntu@<jump host>:2222 ubuntu@<target> 'systemctl is-active stackit-server-agent.service'
-```
-
-**A destination outside the allow-list.** This check shows that the restriction is in effect. The request goes to the address `1.1.1.1` directly and needs no DNS. Neither the rule `dhcp` nor the rule `metadata` covers it, so curl gets no connection. After 10 seconds it reports `curl: (28)`, the timeout of a connection that got no answer, and prints `000`. An HTTP status shows that a rule allows the connection, for example a default egress rule that is still in place:
-
-```bash
-ssh -J ubuntu@<jump host>:2222 ubuntu@<target> \
-  'curl -sS -m 10 -o /dev/null -w "%{http_code}\n" https://1.1.1.1'
-```
-
-**Rules of both security groups.** The target's group lists the rule for TCP 22 from the jump host's group and the allow-list, and no egress rule without a protocol. The jump host's group lists the rule for TCP 2222 from `admin_cidr` and the two default egress rules:
-
-```bash
-stackit security-group rule list --project-id <project-id> --security-group-id <group-id>
-```
-
-If a list also shows an ingress rule whose remote security group is the group itself, the platform added it. The [security group concepts](https://docs.stackit.cloud/products/network/core-networking/security-groups/basics/concepts/) state that a new group allows traffic from members of the same group. Such a rule admits only members of that group, and each group has one member.
-
-**Run Command.** Run Command is the test for the running Server Agent: the platform sends a script, and the agent on the VM runs it. Enable the service once per project, [in the portal](https://docs.stackit.cloud/products/compute-engine/run-command/getting-started/enable-run-command-service/) under _Computing > Server > your server > Command > Templates > Enable Commands_ or [through the API](https://docs.stackit.cloud/products/compute-engine/run-command/how-tos/api-enable-the-run-command-service/). The role `run-command.editor` does not allow this step. Run it as the project owner `stackit_admin_email` or as another identity with `service-enablement.service-state.edit` on the project:
+**Run Command** proves that the Server Agent works. Enable the service once per project as the project owner, because `run-command.editor` cannot:
 
 ```bash
 stackit curl -X POST \
   "https://service-enablement.api.eu01.stackit.cloud/v1/projects/<project-id>/services/cloud.stackit.run-command"
 ```
 
-Send the command as the service account that `terraform output -raw run_command_service_account_email` prints. A CLI profile of its own keeps the login of your default profile. For the account Terraform created, create a key and activate it in that profile. The key file holds the private key; `umask 077` makes it readable for you only:
+Create a key for the account from `terraform output -raw run_command_service_account_email`, activate it in a CLI profile of its own, and send a command:
 
 ```bash
 (umask 077; stackit service-account key create --email <run-command-sa-email> --project-id <project-id> \
   --output-format json --assume-yes > ~/.stackit/run-command-key.json)
-
 stackit config profile create run-command --empty --no-set
 STACKIT_CLI_PROFILE=run-command stackit auth activate-service-account \
   --service-account-key-path ~/.stackit/run-command-key.json
-```
 
-For an existing account, activate a key you already have. To create one, pass the project the account belongs to as `--project-id`.
-
-Then send a command and read its result. `create` prints the ID of the command:
-
-```bash
 STACKIT_CLI_PROFILE=run-command stackit server command create --project-id <project-id> --server-id <target-server-id> \
   --template-name RunShellScript --params script='systemctl is-active stackit-server-agent.service'
-
 STACKIT_CLI_PROFILE=run-command stackit server command describe <command-id> --project-id <project-id> --server-id <target-server-id>
 ```
 
-The command reached the agent when its status is `completed` and its exit code is 0. `403 Forbidden` from `create` means that the active identity lacks `run-command.command.create` on the project. `404 Not Found` with the message `agent not found` means that no Server Agent has registered for the target. A new target gives this answer until its Server Agent registers, about two minutes after the server is created. If the answer stays, the serial console shows whether cloud-init reached the metadata service.
+Status `completed` with exit code 0 shows a working Server Agent. `403 Forbidden` means that the identity lacks `run-command.command.create`. `404 Not Found` with `agent not found` means that no Server Agent has registered yet; a new target needs about two minutes.
 
 ## Clean up
 
 ```bash
 terraform destroy
-```
-
-`terraform destroy` removes everything the example created, including the project, the network area and the service account for Run Command if Terraform created it. An existing account loses its role on the project and keeps its keys. Delete the key file you created and the CLI profile yourself:
-
-```bash
 rm ~/.stackit/run-command-key.json
 stackit config profile delete run-command
 ```
+
+`terraform destroy` removes the project, the network area and the service account Terraform created. An existing account loses its role and keeps its keys.
