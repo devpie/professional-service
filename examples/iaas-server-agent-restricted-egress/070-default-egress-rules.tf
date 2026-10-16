@@ -12,34 +12,40 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# STACKIT adds two egress rules to every new security group. One allows all
-# outbound IPv4 traffic, the other all outbound IPv6 traffic. Rules only
-# allow, so the allow-list in 060-security-groups.tf restricts nothing while
-# these two rules exist.
-#
-# The provider cannot remove them: stackit_security_group has no argument for
-# its rules, and the data source does not list them. This file deletes them
-# through the IaaS API with scripts/remove-default-egress-rules.sh.
+# STACKIT adds two egress rules to every new security group, one for IPv4 and
+# one for IPv6. Both allow all outbound traffic, so the allow-list in
+# 060-security-groups.tf restricts nothing while they exist. The provider
+# cannot remove them, so this file deletes them through the IaaS API.
 
-# The token of the service account the provider is configured with. An
-# ephemeral resource is not written to the plan or the state.
+# The token of the service account the provider is configured with. Terraform
+# writes an ephemeral value neither to the plan nor to the state.
 ephemeral "stackit_access_token" "iaas" {}
 
-# Runs for the target's security group, and again when Terraform replaces
-# that group. The script deletes every egress rule that has no protocol, no
-# port range, no IP range and no remote security group, and fails unless the
-# group is then free of egress rules that allow all traffic. It needs bash,
-# curl and jq on the machine that runs Terraform.
-#
-# Terraform hides the output of the script, because its environment holds the
-# token. When the script fails, the error message of Terraform contains the
-# output.
+# Deletes every egress rule of the target's group that has no protocol, no
+# port range, no IP range and no remote security group: the two default rules.
+# It then lists the rules again until none of them is left, and fails after
+# 30 seconds. Terraform runs it again when it replaces the group. It needs
+# bash, curl 7.55.0 or later and jq on the machine that runs Terraform. curl
+# reads the token from a file descriptor, so it stays out of the process list.
 resource "terraform_data" "remove_default_egress_rules" {
   triggers_replace = stackit_security_group.target.security_group_id
 
   provisioner "local-exec" {
-    interpreter = ["bash"]
-    command     = "${path.module}/scripts/remove-default-egress-rules.sh"
+    interpreter = ["bash", "-c"]
+    command     = <<-EOT
+      set -euo pipefail
+      api() { curl -sSf --retry 3 -H @<(printf 'Authorization: Bearer %s\n' "$STACKIT_ACCESS_TOKEN") "$@"; }
+      default_rules='.items[] | select(.direction == "egress" and .protocol == null and .portRange == null and .ipRange == null and .remoteSecurityGroupId == null) | .id'
+      ids=$(api "$SECURITY_GROUP_URL/rules" | jq -r "$default_rules")
+      for id in $ids; do api -X DELETE "$SECURITY_GROUP_URL/rules/$id" >/dev/null; done
+      for _ in 1 2 3 4 5 6; do
+        left=$(api "$SECURITY_GROUP_URL/rules" | jq -r "$default_rules")
+        [ -z "$left" ] && exit 0
+        sleep 5
+      done
+      echo "default egress rules still present: $left" >&2
+      exit 1
+    EOT
 
     environment = {
       SECURITY_GROUP_URL   = "https://iaas.api.stackit.cloud/v2/projects/${stackit_security_group.target.project_id}/regions/${stackit_security_group.target.region}/security-groups/${stackit_security_group.target.security_group_id}"
