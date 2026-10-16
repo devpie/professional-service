@@ -77,7 +77,7 @@ output "verify_commands" {
     ${local.ssh_target} 'cloud-init status --long'
 
     # Target, without SSH: the serial console names the data source of the first boot. DataSourceNone means that cloud-init reached no metadata service.
-    stackit server log ${stackit_server.target.server_id} --project-id ${local.project_id} --length 5000 | grep -a -E 'No active metadata service found|Datasource DataSource'
+    stackit server log ${stackit_server.target.server_id} --project-id ${local.project_id} --region ${var.stackit_region} --length 5000 | grep -a -E 'No active metadata service found|Datasource DataSource'
 
     # Target: the unit of the STACKIT Server Agent is active.
     ${local.ssh_target} 'systemctl is-active stackit-server-agent.service'
@@ -87,10 +87,13 @@ output "verify_commands" {
     ${local.ssh_target} 'curl -sS -m 10 -o /dev/null -w "%%{http_code}\n" https://1.1.1.1'
 
     # Rules of both security groups as the IaaS API reports them.
-    stackit security-group rule list --project-id ${local.project_id} --security-group-id ${stackit_security_group.jump.security_group_id}
-    stackit security-group rule list --project-id ${local.project_id} --security-group-id ${stackit_security_group.target.security_group_id}
+    stackit security-group rule list --project-id ${local.project_id} --region ${var.stackit_region} --security-group-id ${stackit_security_group.jump.security_group_id}
+    stackit security-group rule list --project-id ${local.project_id} --region ${var.stackit_region} --security-group-id ${stackit_security_group.target.security_group_id}
 
-    # Run Command: the platform reaches the Server Agent on the target. The CLI profile run-command holds a key of ${local.run_command_service_account_email}, see "Verify" in the README.
-    STACKIT_CLI_PROFILE=run-command stackit server command create --project-id ${local.project_id} --server-id ${stackit_server.target.server_id} --template-name RunShellScript --params script='systemctl is-active stackit-server-agent.service'
+    # Run Command, once per project and as the project owner: enable the service. The role run-command.editor cannot do this.
+    stackit curl -X POST "https://service-enablement.api.${var.stackit_region}.stackit.cloud/v1/projects/${local.project_id}/services/cloud.stackit.run-command"
+
+    # Run Command: send a command to the Server Agent on the target. The CLI profile run-command holds a key of ${local.run_command_service_account_email}, see "Verify" in the README.
+    STACKIT_CLI_PROFILE=run-command stackit server command create --project-id ${local.project_id} --region ${var.stackit_region} --server-id ${stackit_server.target.server_id} --template-name RunShellScript --params script='systemctl is-active stackit-server-agent.service'
   EOT
 }
