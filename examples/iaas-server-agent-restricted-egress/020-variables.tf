@@ -146,17 +146,6 @@ variable "run_command_service_account_name" {
 
 # --- outbound traffic of the target --------------------------------------
 
-variable "egress_mode" {
-  description = "\"restricted\" removes the two default egress rules from the target's security group, so only egress_rules allows outbound traffic. \"open\" keeps the default rules, so all outbound traffic passes; use it to record what the machine contacts. A change replaces the target's security group, network interface and server."
-  type        = string
-  default     = "restricted"
-
-  validation {
-    condition     = contains(["restricted", "open"], var.egress_mode)
-    error_message = "egress_mode must be \"restricted\" or \"open\"."
-  }
-}
-
 variable "egress_rules" {
   description = "Outbound allow-list of the target's security group. Each entry becomes one IPv4 egress rule per address range. ip_range takes a CIDR or one of two names: \"nameservers\" stands for every address in var.nameservers, \"stackit\" for every IPv4 range in data.stackit_public_ip_ranges. Leave port_min and port_max unset for a protocol without ports, such as icmp. The default holds the two rules cloud-init, the Server Agent and Run Command need: DHCP and the metadata service."
   type = map(object({
@@ -222,7 +211,7 @@ variable "ssh_user" {
 }
 
 variable "image_id" {
-  description = "Image UUID of both machines. The cloud-init configuration is written for the public image \"Ubuntu 24.04\" (amd64): it relies on nftables and on sshd socket activation. Look the ID up with: stackit image list --all --project-id <existing project>"
+  description = "Image UUID of both machines. The cloud-init configuration is written for the public image \"Ubuntu 24.04\" (amd64): the jump host relies on sshd socket activation. Look the ID up with: stackit image list --all --project-id <existing project>"
   type        = string
 
   validation {

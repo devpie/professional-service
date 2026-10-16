@@ -21,19 +21,11 @@
 # its rules, and the data source does not list them. This file removes them
 # with two calls against the IaaS API.
 
-# Holds the mode, so that other resources can react to a change of it. The
-# target's security group, network interface and server are replaced when it
-# changes: the new group starts with its default rules again, and the new
-# server boots for the first time under the rule set of the new mode.
-resource "terraform_data" "egress_mode" {
-  input = var.egress_mode
-}
-
 # The token of the service account the provider is configured with. An
 # ephemeral resource is not written to the plan or the state.
 ephemeral "stackit_access_token" "iaas" {}
 
-# Runs once per security group, in mode "restricted" only. The script deletes
+# Runs once per security group. The script deletes
 # every egress rule that has no protocol, no port range, no IP range and no
 # remote security group, and fails unless the group is then free of egress
 # rules that allow all traffic. It needs bash, curl and jq on the machine that
@@ -43,8 +35,6 @@ ephemeral "stackit_access_token" "iaas" {}
 # token. When the script fails, the error message of Terraform contains the
 # output.
 resource "terraform_data" "remove_default_egress_rules" {
-  count = var.egress_mode == "restricted" ? 1 : 0
-
   triggers_replace = stackit_security_group.target.security_group_id
 
   provisioner "local-exec" {

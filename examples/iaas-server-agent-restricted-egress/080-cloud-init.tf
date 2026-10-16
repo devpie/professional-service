@@ -52,18 +52,4 @@ locals {
       ]
     }),
   ])
-
-  # --- target ------------------------------------------------------------
-  #
-  # The user data of the target is a single boothook and no cloud-config.
-  # cloud-init merges the cloud-config of the user over the cloud-config of
-  # the vendor data: where both set a key, the value of the user wins. The
-  # platform installs the Server Agent through vendor data. A boothook is a
-  # script of its own and merges with nothing, so this user data overrides
-  # nothing the platform delivers. A boothook is also the earliest point at
-  # which user data runs.
-  target_user_data = join("\n", [
-    "#cloud-boothook",
-    file("${path.module}/files/egress-probe-boothook.sh"),
-  ])
 }

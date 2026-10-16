@@ -24,10 +24,6 @@ ssh_public_key = "ssh-ed25519 AAAA... you@example.com"
 #   stackit image list --all --project-id <existing-project-id>
 image_id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 
-# "restricted" (default) removes the default egress rules of the target.
-# "open" keeps them, see "Measure what a VM needs" in the README.
-# egress_mode = "open"
-
 # Existing service account that sends Run Command. Terraform gives it the role
 # run-command.editor on the project. Unset, Terraform creates one in the
 # project. Lower case only.

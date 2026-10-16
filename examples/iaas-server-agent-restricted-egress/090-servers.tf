@@ -77,11 +77,6 @@ resource "stackit_network_interface" "target" {
     stackit_security_group_rule.target_egress,
     stackit_security_group_rule.target_ssh,
   ]
-
-  # Terraform deletes the interface before the security group it belongs to.
-  lifecycle {
-    replace_triggered_by = [terraform_data.egress_mode]
-  }
 }
 
 resource "stackit_server" "target" {
@@ -91,7 +86,6 @@ resource "stackit_server" "target" {
   machine_type       = var.target_machine_type
   keypair_name       = stackit_key_pair.admin.name
   network_interfaces = [stackit_network_interface.target.network_interface_id]
-  user_data          = local.target_user_data
 
   # A server created from an image gets a new boot volume. A replaced server
   # therefore starts from the unchanged image and runs its first boot again.
@@ -112,8 +106,4 @@ resource "stackit_server" "target" {
     stackit_security_group_rule.target_egress,
     stackit_security_group_rule.target_ssh,
   ]
-
-  lifecycle {
-    replace_triggered_by = [terraform_data.egress_mode]
-  }
 }

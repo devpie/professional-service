@@ -54,12 +54,6 @@ resource "stackit_security_group" "target" {
   name        = "${var.name_prefix}-target"
   description = "Target: inbound SSH from the jump host's group, outbound traffic from an allow-list"
   stateful    = true
-
-  # A deleted default egress rule does not come back. A change of egress_mode
-  # therefore creates a new group, which starts with its two default rules.
-  lifecycle {
-    replace_triggered_by = [terraform_data.egress_mode]
-  }
 }
 
 resource "stackit_security_group_rule" "target_ssh" {

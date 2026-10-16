@@ -27,11 +27,6 @@ output "project_id" {
   value       = local.project_id
 }
 
-output "egress_mode" {
-  description = "Rule set the target booted with: \"restricted\" or \"open\"."
-  value       = var.egress_mode
-}
-
 output "jump_server_id" {
   description = "Server ID of the jump host."
   value       = stackit_server.jump.server_id
@@ -88,11 +83,8 @@ output "verify_commands" {
     ${local.ssh_target} 'systemctl is-active stackit-server-agent.service'
 
     # Target: a destination outside the default allow-list, given as an address so the check needs no DNS.
-    # "restricted": curl gets no connection, reports curl error 28 after 10 seconds and then prints 000. "open": curl prints the HTTP status.
+    # curl gets no connection, reports curl error 28 after 10 seconds and then prints 000.
     ${local.ssh_target} 'curl -sS -m 10 -o /dev/null -w "%%{http_code}\n" https://1.1.1.1'
-
-    # Target: destinations of the outbound connections the probe logged, over all boots.
-    ${local.ssh_target} 'sudo egress-probe-report'
 
     # Rules of both security groups as the IaaS API reports them.
     stackit security-group rule list --project-id ${local.project_id} --security-group-id ${stackit_security_group.jump.security_group_id}
