@@ -41,8 +41,9 @@ resource "stackit_security_group_rule" "jump_ssh" {
   ip_range          = var.admin_cidr
 }
 
-# The jump host is not the subject of the egress test. Its group keeps the two
-# default egress rules that STACKIT adds to every new security group.
+# The allow-list applies to the target only. The jump host's security group
+# keeps the two default egress rules that STACKIT adds to every new security
+# group.
 
 # --- target --------------------------------------------------------------
 #

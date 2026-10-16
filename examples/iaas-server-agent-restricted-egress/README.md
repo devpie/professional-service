@@ -2,7 +2,7 @@
 
 # Restricted Egress for a VM with cloud-init and the STACKIT Server Agent
 
-Deploys a Linux VM whose security group allows outbound traffic to an allow-list only, with the STACKIT Server Agent switched on, and a jump host as the only way to reach it over SSH. The example adds the two egress rules that cloud-init, the Server Agent and Run Command need: DHCP and the metadata service. It removes the default egress rules, which Terraform cannot manage.
+Deploys a Linux VM, the target, whose security group allows outbound traffic to an allow-list only. The platform installs the STACKIT Server Agent on the target. A jump host is the only way to reach the target over SSH. The example adds the two egress rules that cloud-init, the Server Agent and Run Command need: DHCP and the metadata service. Every new security group also carries two default egress rules that allow all outbound traffic. The STACKIT provider cannot remove them, so Terraform runs a script that deletes them through the IaaS API.
 
 ## What the example shows
 
@@ -65,11 +65,11 @@ The default egress rules of a new security group allow DHCP like all other traff
 
 `ip_range` of a rule takes a CIDR or one of two names. `nameservers` stands for every address in the variable `nameservers`, which also configures the network. `stackit` stands for every IPv4 range the data source `stackit_public_ip_ranges` returns. A security group rule takes one range, so Terraform creates one rule per range. [`scripts/check-stackit-ip.sh`](../../scripts/check-stackit-ip.sh) tells for any address whether it belongs to the ranges.
 
-The default has no rule for DNS, NTP or the package mirrors of the image. Until you add rules for them, the target resolves no names, does not synchronise its clock and installs no package updates of the operating system. The list has no IPv6 rule; the network has no IPv6 prefix. Add what your machine needs through `egress_rules`. Setting the variable replaces the default, so keep the two default entries:
+The default value of `egress_rules` has no rule for DNS, NTP or the package mirrors of the image. Until you add rules for them, the target resolves no names, does not synchronise its clock and installs no package updates of the operating system. The list has no IPv6 rule; the network has no IPv6 prefix. Add the rules the target needs through `egress_rules`. Terraform does not merge your value with the default value, so copy the rules `dhcp` and `metadata` from `020-variables.tf` into it:
 
 ```hcl
 egress_rules = {
-  # ... the two default entries from 020-variables.tf ...
+  # ... dhcp and metadata, copied from the default value in 020-variables.tf ...
   dns-udp = {
     description = "DNS: name resolution through the nameservers of the network"
     protocol    = "udp"
@@ -87,7 +87,7 @@ egress_rules = {
 }
 ```
 
-A change of `egress_rules` adds or deletes rules on the running machine. To boot the target for the first time under the changed list, replace the server:
+When `egress_rules` changes, Terraform adds and deletes rules in the target's security group. They apply to the running target without a reboot. cloud-init and the installation of the Server Agent run at the first boot only. To run that boot under the changed rules, replace the target:
 
 ```bash
 terraform apply -replace=stackit_server.target
@@ -102,7 +102,7 @@ The provider cannot remove them. `stackit_security_group` has no argument for it
 `070-default-egress-rules.tf` therefore calls the API directly:
 
 1. `ephemeral "stackit_access_token"` issues a token for the service account the provider uses. Terraform writes an ephemeral value neither to the plan nor to the state.
-2. `terraform_data.remove_default_egress_rules` runs [`scripts/remove-default-egress-rules.sh`](scripts/remove-default-egress-rules.sh) once per security group. The token and the URL of the group reach the script through its environment.
+2. `terraform_data.remove_default_egress_rules` runs [`scripts/remove-default-egress-rules.sh`](scripts/remove-default-egress-rules.sh) for the target's security group, and again when Terraform replaces that group. The token and the URL of the group reach the script through its environment.
 3. The script lists the rules of the group, deletes every egress rule that has no protocol, no port range, no IP range and no remote security group, and lists the rules again until no such rule is among them.
 4. The script fails, and `terraform apply` with it, when a call fails or when an egress rule that allows all traffic is left.
 
@@ -143,11 +143,11 @@ The output `run_command_service_account_email` names the account in both cases. 
 | `045-run-command-access.tf`              | the service account for Run Command and its role on the project                                              |
 | `050-network.tf`                         | the network of both machines                                                                                 |
 | `060-security-groups.tf`                 | both security groups, the two ingress rules and the egress allow-list                                        |
-| `070-default-egress-rules.tf`            | the removal of the default egress rules                                                                      |
+| `070-default-egress-rules.tf`            | the access token and the step that runs the script below                                                     |
 | `080-cloud-init.tf`                      | user data of the jump host                                                                                   |
 | `090-servers.tf`                         | key pair, network interfaces, public IP and both servers                                                     |
 | `100-outputs.tf`                         | IDs, addresses, the Run Command service account, the SSH command and the verify commands                     |
-| `scripts/remove-default-egress-rules.sh` | runs on the machine that runs Terraform                                                                      |
+| `scripts/remove-default-egress-rules.sh` | deletes the default egress rules through the IaaS API, on the machine that runs Terraform                    |
 
 ## Usage
 
@@ -159,7 +159,7 @@ The output `run_command_service_account_email` names the account in both cases. 
 - For the Run Command check: an identity that may enable the Run Command service on the project, and a key of the service account that holds `run-command.editor`. See [Who may send Run Command](#who-may-send-run-command).
 - `bash`, `jq` and `curl` 7.55.0 or later on the machine that runs Terraform.
 - An SSH key pair and an OpenSSH client with `-J` (ProxyJump).
-- The ID of the public image `Ubuntu 24.04` (amd64). The user data of the jump host relies on one property of that image: it starts sshd through socket activation.
+- The ID of the public image `Ubuntu 24.04` (amd64). The user data of the jump host expects the sshd layout of Debian and Ubuntu: the main sshd configuration reads `/etc/ssh/sshd_config.d` first and sets no port, and systemd runs sshd as `ssh.socket` or `ssh.service`.
 - An authenticated [`stackit` CLI](https://github.com/stackitcloud/stackit-cli) for the image lookup and for the checks that read the API.
 
 STACKIT replaces its public images with new builds and [deletes a released image after one year](https://docs.stackit.cloud/products/compute-engine/linux-server/faq/), so `image_id` has no default:
@@ -210,7 +210,7 @@ The key pair belongs to the service account that runs Terraform, not to the proj
 
 ## Verify
 
-`terraform output -raw verify_commands` prints the commands of this section with the addresses and IDs of your deployment.
+`terraform output -raw verify_commands` prints the checks of this section with the addresses and IDs of your deployment. It leaves out the setup for Run Command and the command that reads the result of a Run Command.
 
 **Jump host.** `ss -Htln` lists the listening TCP sockets. Port 2222 is the only one that is not bound to a loopback address:
 
@@ -239,7 +239,7 @@ A working target prints `Datasource DataSourceOpenStackLocal`. `No active metada
 ssh -J ubuntu@<jump host>:2222 ubuntu@<target> 'systemctl is-active stackit-server-agent.service'
 ```
 
-**A destination outside the allow-list.** This check shows that the restriction is in effect. The request goes to the address `1.1.1.1` directly and needs no DNS. No rule of the default allow-list covers it, so curl gets no connection. After 10 seconds it reports `curl: (28)`, the timeout of a connection that got no answer, and prints `000`. An HTTP status shows that a rule allows the connection, for example a default egress rule that is still in place:
+**A destination outside the allow-list.** This check shows that the restriction is in effect. The request goes to the address `1.1.1.1` directly and needs no DNS. Neither the rule `dhcp` nor the rule `metadata` covers it, so curl gets no connection. After 10 seconds it reports `curl: (28)`, the timeout of a connection that got no answer, and prints `000`. An HTTP status shows that a rule allows the connection, for example a default egress rule that is still in place:
 
 ```bash
 ssh -J ubuntu@<jump host>:2222 ubuntu@<target> \

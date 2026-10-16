@@ -18,18 +18,18 @@
 # these two rules exist.
 #
 # The provider cannot remove them: stackit_security_group has no argument for
-# its rules, and the data source does not list them. This file removes them
-# with two calls against the IaaS API.
+# its rules, and the data source does not list them. This file deletes them
+# through the IaaS API with scripts/remove-default-egress-rules.sh.
 
 # The token of the service account the provider is configured with. An
 # ephemeral resource is not written to the plan or the state.
 ephemeral "stackit_access_token" "iaas" {}
 
-# Runs once per security group. The script deletes
-# every egress rule that has no protocol, no port range, no IP range and no
-# remote security group, and fails unless the group is then free of egress
-# rules that allow all traffic. It needs bash, curl and jq on the machine that
-# runs Terraform.
+# Runs for the target's security group, and again when Terraform replaces
+# that group. The script deletes every egress rule that has no protocol, no
+# port range, no IP range and no remote security group, and fails unless the
+# group is then free of egress rules that allow all traffic. It needs bash,
+# curl and jq on the machine that runs Terraform.
 #
 # Terraform hides the output of the script, because its environment holds the
 # token. When the script fails, the error message of Terraform contains the

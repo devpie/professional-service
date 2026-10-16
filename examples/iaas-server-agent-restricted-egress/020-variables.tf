@@ -211,7 +211,7 @@ variable "ssh_user" {
 }
 
 variable "image_id" {
-  description = "Image UUID of both machines. The cloud-init configuration is written for the public image \"Ubuntu 24.04\" (amd64): the jump host relies on sshd socket activation. Look the ID up with: stackit image list --all --project-id <existing project>"
+  description = "Image UUID of both machines. The user data of the jump host expects the public image \"Ubuntu 24.04\" (amd64), whose main sshd configuration reads /etc/ssh/sshd_config.d and sets no port. Look the ID up with: stackit image list --all --project-id <existing project>"
   type        = string
 
   validation {
