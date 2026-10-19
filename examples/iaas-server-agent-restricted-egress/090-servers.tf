@@ -43,7 +43,7 @@ resource "stackit_server" "jump" {
   machine_type       = var.jump_machine_type
   keypair_name       = stackit_key_pair.admin.name
   network_interfaces = [stackit_network_interface.jump.network_interface_id]
-  user_data          = local.jump_user_data
+  user_data          = templatefile("${path.module}/jump-host-cloud-init.yaml.tftpl", { ssh_port = local.jump_ssh_port })
 
   boot_volume = {
     source_type           = "image"
