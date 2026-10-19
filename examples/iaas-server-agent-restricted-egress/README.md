@@ -80,7 +80,7 @@ Changed rules apply to the running target. cloud-init and the installation of th
 
 [Every new security group allows all egress traffic](https://docs.stackit.cloud/products/network/core-networking/security-groups/basics/concepts/). The IaaS API lists two default egress rules for this: one for IPv4 and one for IPv6. Neither has a protocol, a port range or an IP range. The provider cannot remove them, because `stackit_security_group` has no argument for its rules.
 
-`070-default-egress-rules.tf` therefore deletes them with `curl` and `jq` through the IaaS API. The token comes from the ephemeral resource `stackit_access_token`, which Terraform writes neither to the plan nor to the state. The network interface and the server of the target wait for this step. The target therefore boots for the first time with the allow-list and without the default egress rules.
+`070-default-egress-rules.tf` therefore runs [`remove-default-egress-rules.sh`](remove-default-egress-rules.sh), which deletes them with `curl` and `jq` through the IaaS API. The token comes from the ephemeral resource `stackit_access_token`, which Terraform writes neither to the plan nor to the state. The network interface and the server of the target wait for this step. The target therefore boots for the first time with the allow-list and without the default egress rules.
 
 ## Who may send Run Command
 
