@@ -1,0 +1,29 @@
+#cloud-config
+# sshd reads the files in /etc/ssh/sshd_config.d before the rest of its
+# configuration. The main file sets no port, so this file alone decides where
+# sshd listens.
+write_files:
+  - path: /etc/ssh/sshd_config.d/00-jump-host.conf
+    owner: root:root
+    permissions: "0644"
+    content: |
+      # Jump host: sshd listens on TCP ${ssh_port} only and accepts public keys only.
+      Port ${ssh_port}
+      PermitRootLogin no
+      PubkeyAuthentication yes
+      PasswordAuthentication no
+      KbdInteractiveAuthentication no
+      AuthenticationMethods publickey
+      # ProxyJump opens a forwarded TCP connection to the target.
+      AllowTcpForwarding yes
+      AllowAgentForwarding no
+      X11Forwarding no
+
+# Ubuntu 24.04 starts sshd through socket activation: systemd holds the
+# listening socket in ssh.socket, and a generator derives its port from the
+# sshd configuration. "systemctl daemon-reload" runs the generator again, and
+# the restart of ssh.socket closes port 22 and opens the new port. The other
+# branch covers an image that runs sshd as the plain service ssh.service.
+runcmd:
+  - systemctl daemon-reload
+  - "if systemctl is-enabled --quiet ssh.socket; then systemctl restart ssh.socket; else systemctl restart ssh.service; fi"
