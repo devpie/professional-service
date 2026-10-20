@@ -1,6 +1,6 @@
 module github.com/stackitcloud/professional-service/apps/costguard
 
-go 1.27.1
+go 1.27.2
 
 require (
 	github.com/stackitcloud/stackit-sdk-go/core v0.27.1
