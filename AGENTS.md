@@ -164,6 +164,8 @@ Fetch only the files relevant to the task. A typical example contains
   Deploys three node pools and runs a KVM smoke test on each to show which STACKIT flavors expose `/dev/kvm`
 - **`ske-nginx-rate-limit`** `[ske, nginx, rate-limit, kubernetes, ingress, proxy-protocol]`  
   When your application is accessed through a Load Balancer, the original client IP may not be visible to your pods unless the **TCP Proxy Protocol** is enabled and properly configured. STACKIT supports Proxy Protocol version 2. Please follow the steps below to ensure your application and ingress-nginx controller can correctly receive and log the original client IP
+- **`ske-nlb-cross-network`** `[ske, loadbalancer, tls, cert-manager, cross-network, sna, dns, passthrough, kubernetes]`  
+  Deploys an SKE cluster in one STACKIT project and an external Network Load Balancer (NLB) in another project, both inside the same STACKIT Network Area (SNA). The NLB uses TLS passthrough to forward encrypted traffic to a private internal LoadBalancer on the SKE cluster, where nginx terminates TLS with a Let's Encrypt certificate managed by cert-manager
 - **`ske-observability`** `[ske, observability, otel, telemetry, metrics, alerting, log-alerts, kubernetes]`  
   There is more than one way to observe an SKE cluster with STACKIT. The overview shows the options, who operates what, and where each signal ends up. The subfolders are deployable examples, one per approach
 - **`ske-observability/ske-kubeapi-audit-log`** `[ske, kubernetes, audit-log, kube-apiserver, observability, otel, telemetry-router, telemetry-link]`  
