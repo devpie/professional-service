@@ -31,11 +31,31 @@ ports:
   zipkin:
     enabled: false
 
+# The agent runs as root, because it stores the read position of each log
+# file in the host directory /var/lib/otelcol. The kubelet creates this
+# directory with mode 0755 for its own user, root. Reading the logs alone
+# needs only group root: /var/log/pods (0750) and the container log files
+# (0640) belong to root:root. The agent drops every capability and cannot
+# gain one. The kernel therefore checks its file access like that of any
+# other user. The root file system is read-only.
+securityContext:
+  runAsUser: 0
+  runAsGroup: 0
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop: [ALL]
+  seccompProfile:
+    type: RuntimeDefault
+
 presets:
   # filelog receiver on /var/log/pods
   logsCollection:
     enabled: true
     includeCollectorLogs: false
+    # The agent stores the read position of each log file on the node. After
+    # a restart it continues at these positions instead of skipping lines.
+    storeCheckpoints: true
   # container and node metrics from the kubelet
   kubeletMetrics:
     enabled: true

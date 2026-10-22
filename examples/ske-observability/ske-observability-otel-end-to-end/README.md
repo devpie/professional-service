@@ -206,6 +206,16 @@ not only the demo application. Nothing has to be changed in the applications. Th
 the Grafana Alloy setup in [`ske-observability-log-alerts`](../ske-observability-log-alerts/)
 does, with the OpenTelemetry Collector instead.
 
+The agent runs as root, because it stores the read position of each log file in `/var/lib/otelcol`
+on the node (`storeCheckpoints`). The kubelet creates this directory with mode 0755 for its own
+user, root. After a restart the agent continues at the stored positions. Reading the logs alone
+needs only group root: `/var/log/pods` (0750) and the container log files (0640) belong to
+root:root. The agent drops all Linux capabilities, the privileges that let root bypass permission
+checks, and cannot gain new ones. The kernel therefore checks its file access like that of any
+other user. The Pod does not set `hostUsers: false`, so user root in the container is user root on
+the node. Of the node's files the agent sees only its mounts: `/var/log/pods` and
+`/var/lib/docker/containers` read-only, `/var/lib/otelcol` writable.
+
 ### Collector gateway (exactly one Pod)
 
 <table>
