@@ -218,7 +218,7 @@ To add projects, add entries to `projects`.
 
 ## 📬 Support
 
-For issues, please create a Ticket or contact professional-service@stackit.cloud
+For issues, please create a Ticket
 
 ---
 
