@@ -1,0 +1,44 @@
+#cloud-config
+package_update: true
+packages:
+  - nginx
+write_files:
+  - path: /var/www/html/index.html
+    content: |
+      <h1>Hello from ${name} (${az})</h1>
+%{ if mgmt != null ~}
+  # Policy routing: replies from the management IP leave via the management interface
+  # (the default route points to the LAN interface)
+  - path: /usr/local/sbin/mgmt-route.sh
+    permissions: "0755"
+    content: |
+      #!/bin/sh
+      IFACE=$(ip -o link | awk -v mac="${mgmt.mac}" 'tolower($0) ~ mac {sub(":", "", $2); print $2}')
+      [ -n "$IFACE" ] || exit 1
+      ip link set "$IFACE" up
+      ip addr replace ${mgmt.ip}/${mgmt.prefix_length} dev "$IFACE"
+      ip route replace ${mgmt.network} dev "$IFACE" table 100
+      ip route replace default via ${mgmt.gateway} dev "$IFACE" table 100
+      ip rule del from ${mgmt.ip} table 100 2>/dev/null
+      ip rule add from ${mgmt.ip} table 100
+  - path: /etc/systemd/system/mgmt-route.service
+    content: |
+      [Unit]
+      Description=Policy routing for the management interface
+      After=network-online.target
+      Wants=network-online.target
+
+      [Service]
+      Type=oneshot
+      RemainAfterExit=yes
+      ExecStart=/usr/local/sbin/mgmt-route.sh
+
+      [Install]
+      WantedBy=multi-user.target
+%{ endif ~}
+runcmd:
+  - systemctl enable --now nginx
+%{ if mgmt != null ~}
+  - systemctl daemon-reload
+  - systemctl enable --now mgmt-route.service
+%{ endif ~}
