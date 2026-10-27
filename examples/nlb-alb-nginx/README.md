@@ -1,29 +1,37 @@
 <!-- tags: load-balancer, alb, layer4, layer7, nginx, tls, cert, iaas, terraform, ha -->
 
-# 🌐 STACKIT NLB → ALBs → nginx
+# STACKIT NLB → ALBs → nginx
 
 Terraform code for a two-tier load balancing setup on STACKIT: a public **Network Load Balancer (Layer 4)** distributes the connections across **two private Application Load Balancers (Layer 7)**. Each ALB terminates TLS and balances across **three nginx servers** in different availability zones. The service is reachable via a **STACKIT DNS** name.
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ![NLB in front of two ALBs, each ALB serves all three servers](docs/architecture.png)
 
-```
-Internet
-   │  https://web.nlbalb.runs.onstackit.cloud   (STACKIT DNS, A record)
-   ▼
- NLB   stackit_loadbalancer (p50)        public IP, TCP 80/443, forwards unchanged
-   │
-   ├──────────────────────┐              ALB private IPs
-   ▼                      ▼
- alb1 (p10)             alb2 (p10)       private only, TLS termination (443), HTTP (80)
-   │ \     \           /     / │
-   ▼  ▼     ▼         ▼     ▼  ▼         HTTP 80, every ALB serves every server
- srv1 (eu01-1)   srv2 (eu01-2)   srv3 (eu01-3)   Debian 12 + nginx (cloud-init)
-   │
-   └─ srv1 has an additional MGMT interface with a public IP for SSH
+```mermaid
+flowchart TB
+    internet((Internet))
+    nlb["NLB, plan p50<br/>public IP, TCP 80/443"]
+
+    subgraph albs["ALBs, private, TLS termination"]
+        direction LR
+        alb1["alb1<br/>plan p10"]
+        alb2["alb2<br/>plan p10"]
+    end
+
+    subgraph servers["nginx servers"]
+        direction LR
+        srv1["srv1<br/>eu01-1"]
+        srv2["srv2<br/>eu01-2"]
+        srv3["srv3<br/>eu01-3"]
+    end
+
+    internet -- "https://web.nlbalb.runs.onstackit.cloud" --> nlb
+    nlb --> albs
+    albs -- "HTTP 80, every ALB serves every server" --> servers
+    internet -. "SSH, public IP" .-> srv1
 ```
 
 ### Why an NLB in front of the ALBs?
@@ -46,7 +54,7 @@ On the **ALBs**. The STACKIT NLB only supports `TCP`, `UDP`, `TCP_PROXY` and `TL
 
 ---
 
-## 📦 Components
+## Components
 
 | File                    | Content                                                                                                       |
 | ----------------------- | ------------------------------------------------------------------------------------------------------------- |
@@ -92,7 +100,7 @@ The exact commands are shown in the `ssh` output.
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -194,7 +202,7 @@ To add projects, add entries to `projects`.
 
 ---
 
-## 🔐 Outputs
+## Outputs
 
 - `url`: HTTPS URL of the service
 - `fqdn`: DNS name of the service
@@ -204,7 +212,7 @@ To add projects, add entries to `projects`.
 
 ---
 
-## ⚠️ Notes and Limitations
+## Notes and Limitations
 
 - **Self-signed certificate** by default; browsers will show a warning. Use `scripts/issue-cert.sh` for a valid certificate. It is not part of `terraform apply`, because the Terraform ACME provider (lego) has no STACKIT DNS provider.
 - **Not changeable after creation** (changing them recreates the resource): on the ALBs `private_network_only`, `ephemeral_address`, `external_address`, `disable_target_security_group_assignment`; on the project the `networkArea` label.
@@ -216,7 +224,7 @@ To add projects, add entries to `projects`.
 
 ---
 
-## 📬 Support
+## Support
 
 For issues, please create a Ticket
 
