@@ -118,6 +118,8 @@ Fetch only the files relevant to the task. A typical example contains
   Upload a custom VM image to STACKIT using Terraform
 - **`iaas-k3s-self-managed`** `[iaas, k3s, kubernetes, self-managed]`  
   Deploys a 6-node k3s + Cilium cluster on STACKIT VMs and validates: L4 NLB, L7 ALB, CSI block storage, Cilium NetworkPolicy, and egress connectivity
+- **`iaas-paloalto-ha`** `[iaas, ha, firewall, paloalto, networking, sna, image, custom-image, vip, terraform]`  
+  Terraform code for two **Palo Alto VM-Series firewalls** in an **active/passive High Availability (HA)** setup on STACKIT IaaS. The firewalls run in different availability zones and share a **floating IP (VIP)** with a public IP on the WAN side. The code creates a **STACKIT Network Area (SNA)** with a new project, uploads the PA-VM image and deploys both firewalls with management, HA, WAN and two LAN interfaces
 - **`iaas-server-agent-restricted-egress`** `[iaas, compute, networking, sna, security-group, egress, cloud-init, server-agent, jump-host, ssh]`  
   This example deploys a Linux VM, the target. Its security group allows outbound traffic only to an allow-list. The platform installs the STACKIT Server Agent on the target. A jump host is the only way to reach the target over SSH. The example adds the two egress rules that cloud-init, the Server Agent and Run Command need: DHCP and the metadata service. Every new security group also carries two default egress rules that allow all outbound traffic. The STACKIT provider cannot remove them, so Terraform deletes them through the IaaS API
 - **`iaas-volume-encryption`** `[iaas, volume, encryption, kms, block-storage]`  
