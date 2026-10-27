@@ -10,30 +10,6 @@ Terraform code for a two-tier load balancing setup on STACKIT: a public **Networ
 
 ![NLB in front of two ALBs, each ALB serves all three servers](docs/architecture.png)
 
-```mermaid
-flowchart TB
-    internet((Internet))
-    nlb["NLB, plan p50<br/>public IP, TCP 80/443"]
-
-    subgraph albs["ALBs, private, TLS termination"]
-        direction LR
-        alb1["alb1<br/>plan p10"]
-        alb2["alb2<br/>plan p10"]
-    end
-
-    subgraph servers["nginx servers"]
-        direction LR
-        srv1["srv1<br/>eu01-1"]
-        srv2["srv2<br/>eu01-2"]
-        srv3["srv3<br/>eu01-3"]
-    end
-
-    internet -- "https://web.nlbalb.runs.onstackit.cloud" --> nlb
-    nlb --> albs
-    albs -- "HTTP 80, every ALB serves every server" --> servers
-    internet -. "SSH, public IP" .-> srv1
-```
-
 ### Why an NLB in front of the ALBs?
 
 A single ALB with plan `p10` handles up to **10,000 concurrent connections**. The NLB is placed in front to get beyond this limit: it accepts the connections and distributes them across several ALBs.
