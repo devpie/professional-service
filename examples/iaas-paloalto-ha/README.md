@@ -1,6 +1,6 @@
 <!-- tags: iaas, ha, firewall, paloalto, networking, sna, image, custom-image, vip, terraform -->
 
-# 🔥 Palo Alto VM-Series HA Pair on STACKIT
+# Palo Alto VM-Series HA Pair on STACKIT
 
 Terraform code for two **Palo Alto VM-Series firewalls** in an **active/passive High Availability (HA)** setup on STACKIT IaaS. The firewalls run in different availability zones and share a **floating IP (VIP)** with a public IP on the WAN side. The code creates a **STACKIT Network Area (SNA)** with a new project, uploads the PA-VM image and deploys both firewalls with management, HA, WAN and two LAN interfaces.
 
@@ -8,26 +8,39 @@ Terraform only provisions the infrastructure. The HA configuration itself (HA1/H
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
+```mermaid
+flowchart TB
+    internet((Internet))
+
+    subgraph sna["STACKIT network area 10.220.0.0/16"]
+        mgmt["mgmt_network<br/>10.220.129.0/24, routed"]
+        wan["wan_network<br/>10.220.131.0/24, routed"]
+        vip["VIP 10.220.131.30<br/>unattached port"]
+        fw1["fw1<br/>PA-VM, eu01-1"]
+        fw2["fw2<br/>PA-VM, eu01-2"]
+        ha["ha_network<br/>10.220.254.0/24"]
+        lan1["lan_network1<br/>10.220.1.0/24, gateway .1"]
+        lan2["lan_network2<br/>10.220.2.0/24, gateway .1"]
+    end
+
+    internet -- "public IP per firewall" --> mgmt
+    internet -- "public IP, 1:1 NAT" --> vip
+    vip --- wan
+    mgmt -- "mgmt .10, HA1" --- fw1
+    mgmt -- "mgmt .11, HA1" --- fw2
+    wan -- "ethernet1/2 .10" --- fw1
+    wan -- "ethernet1/2 .11" --- fw2
+    fw1 -- "ethernet1/1 HA2" --- ha
+    ha --- fw2
+    fw1 -- "ethernet1/3, ethernet1/4" --- lan1
+    fw1 --- lan2
+    fw2 --- lan1
+    fw2 -- "ethernet1/3, ethernet1/4" --- lan2
 ```
-                         Internet
-                            │
-            ┌───────────────┼──────────────────────────┐
-            │               │ public IP (VIP)          │
-   public IP│      wan_network 10.220.131.0/24         │public IP
-            │      VIP 10.220.131.30 (unattached port) │
-            │        │                     │           │
- mgmt_network        │ .10                 │ .11       mgmt_network
- 10.220.129.0/24     ▼                     ▼           10.220.129.0/24
-   .10 ──────► ┌──────────┐  ha_network  ┌──────────┐ ◄────── .11
-               │   fw1    │◄────────────►│   fw2    │
-               │ eu01-1   │ 10.220.254.0 │ eu01-2   │
-               └──────────┘   /24        └──────────┘
-                 │      │                  │      │
-                 ▼      ▼                  ▼      ▼
-           lan_network1 10.220.1.0/24   lan_network2 10.220.2.0/24
-```
+
+The active firewall owns the VIP on `ethernet1/2` and the LAN gateway IPs; the passive firewall takes them over on failover.
 
 ### Interface mapping
 
@@ -50,7 +63,7 @@ The host part of the IPs comes from `var.firewalls`, the VIP from `var.vip_host`
 
 ---
 
-## 📦 Components
+## Components
 
 | File                    | Content                                                                |
 | ----------------------- | ---------------------------------------------------------------------- |
@@ -89,7 +102,7 @@ With hypervisor-assigned MACs the MAC of an interface changes on failover. There
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -158,7 +171,7 @@ With hypervisor-assigned MACs the MAC of an interface changes on failover. There
 
 ---
 
-## 🔐 Outputs
+## Outputs
 
 - `project_id`: STACKIT project ID
 - `vip`: private and public IP of the VIP
@@ -168,7 +181,7 @@ With hypervisor-assigned MACs the MAC of an interface changes on failover. There
 
 ---
 
-## ⚠️ Notes and Limitations
+## Notes and Limitations
 
 - **HA sync, failover and preemption are not handled by Terraform.** Terraform does not move the VIP; PAN-OS does it with a gratuitous ARP.
 - **Interfaces must match on both firewalls.** For HA sync, both firewalls are connected to the same networks in the same order; do not change the order in `060-firewall.tf`.
@@ -179,7 +192,7 @@ With hypervisor-assigned MACs the MAC of an interface changes on failover. There
 
 ---
 
-## 📬 Support
+## Support
 
 For issues, please create a Ticket
 
