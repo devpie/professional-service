@@ -13,31 +13,18 @@ Terraform only provisions the infrastructure. The HA configuration itself (HA1/H
 ```mermaid
 flowchart TB
     internet((Internet))
+    vip["VIP 10.220.131.30<br/>public IP, 1:1 NAT"]
 
-    subgraph sna["STACKIT network area 10.220.0.0/16"]
-        mgmt["mgmt_network<br/>10.220.129.0/24, routed"]
-        wan["wan_network<br/>10.220.131.0/24, routed"]
-        vip["VIP 10.220.131.30<br/>unattached port"]
-        fw1["fw1<br/>PA-VM, eu01-1"]
-        fw2["fw2<br/>PA-VM, eu01-2"]
-        ha["ha_network<br/>10.220.254.0/24"]
-        lan1["lan_network1<br/>10.220.1.0/24, gateway .1"]
-        lan2["lan_network2<br/>10.220.2.0/24, gateway .1"]
+    subgraph pair["HA pair, active/passive"]
+        direction LR
+        fw1["fw1<br/>eu01-1"] <-- "HA link" --> fw2["fw2<br/>eu01-2"]
     end
 
-    internet -- "public IP per firewall" --> mgmt
-    internet -- "public IP, 1:1 NAT" --> vip
-    vip --- wan
-    mgmt -- "mgmt .10, HA1" --- fw1
-    mgmt -- "mgmt .11, HA1" --- fw2
-    wan -- "ethernet1/2 .10" --- fw1
-    wan -- "ethernet1/2 .11" --- fw2
-    fw1 -- "ethernet1/1 HA2" --- ha
-    ha --- fw2
-    fw1 -- "ethernet1/3, ethernet1/4" --- lan1
-    fw1 --- lan2
-    fw2 --- lan1
-    fw2 -- "ethernet1/3, ethernet1/4" --- lan2
+    lan["lan_network1 / lan_network2<br/>gateway .1"]
+
+    internet --> vip --> pair
+    internet -. "management, public IP per firewall" .-> pair
+    pair --> lan
 ```
 
 The active firewall owns the VIP on `ethernet1/2` and the LAN gateway IPs; the passive firewall takes them over on failover.
